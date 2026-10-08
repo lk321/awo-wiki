@@ -1,0 +1,24 @@
+---
+// The titles of a world, from titles.ts: tier (drawn in the rarity colours), what earns them and what their perk is worth.
+import { game, titles } from '../../lib/shared.ts';
+import { perkName, titleHow, titleName } from '../../lib/names.ts';
+interface Props { world?: number }
+const { world = 1 } = Astro.props;
+const ids = titles.TITLE_IDS.filter((id) => (titles.TITLES[id].world ?? 1) === world);
+---
+<table class="data">
+  <thead><tr><th>Título</th><th>Rareza</th><th>Cómo se gana</th><th>Ventaja</th></tr></thead>
+  <tbody>
+    {ids.map((id) => {
+      const d = titles.TITLES[id];
+      return (
+        <tr>
+          <td><b class={`r-${game.RARITY[d.tier]}`}>{titleName(id)}</b>{d.hours && <><br /><small>temporal · {d.hours} h</small></>}</td>
+          <td class={`r-${game.RARITY[d.tier]}`}>{['Común', 'Raro', 'Épico', 'Legendario'][d.tier]}</td>
+          <td>{titleHow(id)}</td>
+          <td>{Object.entries(d.perk).map(([k, v]) => perkName(k, Math.round(v * 100))).join(' · ')}</td>
+        </tr>
+      );
+    })}
+  </tbody>
+</table>

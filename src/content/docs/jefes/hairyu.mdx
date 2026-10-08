@@ -1,0 +1,46 @@
+---
+title: Hairyū, el Dragón Ancestral Gris
+description: "El jefe principal de las cumbres: cuadrúpedo alado, su nido nevado, su anillo de rugido y sus veinte generaciones."
+sidebar: { order: 3, label: 'Hairyū' }
+---
+import Patron from '../../../components/Patron.astro';
+import Sprite from '../../../components/Sprite.astro';
+import MapView from '../../../components/MapView.astro';
+import MainBoss from '../../../components/tables/MainBoss.astro';
+import { mains, profile } from '../../../lib/shared.ts';
+import { HAIRYU } from '../../../lib/art.ts';
+
+<Patron kami="raijin" section="jefes" />
+
+<Sprite key="hairyu" scale={1} caption="Hairyū (128×96, 6 frames)" />
+
+Cuadrúpedo, pesado, con **dos grandes alas** que lleva plegadas sobre el lomo al andar y despliega al volar: cuello grueso, cabeza maciza con cuernos hacia atrás, cola con púas, cinco tonos de gris, placas de vientre color hueso, cicatrices, liquen y ojo ámbar. Una sola hoja con {HAIRYU.walk} pasos y {HAIRYU.fly.length} frames de vuelo; se eleva {HAIRYU.lift} px sobre su sombra. Nada que ver con la Serpiente Milenaria.
+
+## Su nido
+
+<MapView map="nest" legend={true} />
+
+Una meseta nevada en la cumbre, con el anillo roto del último altar del imperio (pilares solo en los bordes), cuatro peñascos en las esquinas y los dos sellos a los lados. Se entra por el **ōtorii** del norte de la cumbre nevada; su luz es fría y pálida.
+
+## Sus números por generación
+
+<MainBoss id="hairyu" />
+
+## Sus seis ataques
+
+| Hueco | Ataque | Qué castiga |
+|---|---|---|
+| `slash_combo` | **Garra Ancestral**: zarpa izquierda, derecha y las dos patas contra el suelo | Estar delante y cerca |
+| `fan_projectiles` | **Aliento Gris**: un cono de ceniza; en fase 2, **tres barridos** de lado a lado | Grupos a media distancia, delante |
+| `ground_slam` | **Golpe de Ala** (círculo) y **Golpe de Cola** (arco **detrás**) | Pegarse a él y esconderse a su espalda: los flancos son el sitio |
+| `charge` | **Embestida** a cuatro patas; si choca con un muro o un pilar queda **aturdido 1,1 s** | Estar lejos; premia llevarlo contra la roca |
+| `summon_kodama` | **Rugido del Ancestro** (fase 2+): un **anillo**; solo están a salvo los pegados a él (< 50 px) o los muy lejanos (> 155) | Quedarse a media distancia: obliga a moverse dos veces |
+| `teleport_behind` | **Vuelo y Descenso Aéreo** (fase 2+): su sombra persigue a su presa, se fija en los últimos 0,55 s y cae | Quedarse quieto |
+
+## Por qué no es «G1 fácil, G20 imposible»
+
+`shared/balance.test.ts` lo mide con sus números reales a nivel 50 y objeto 20. En **G{profile.GEN_MAX}**, con el mejor set **mítico** más 3 Extras y skin, una party de cuatro tarda **75 s**; su golpe más duro quita el **20 %** de la vida (30 % en crítico) y el robo de vida cura la mitad de lo que pega. Con un set divino sin suerte tarda 119 s y aguanta su crítico. En G1 la pelea dura unos 20 s.
+
+El test exige, en cada mundo: que el golpe más duro quite al menos el 15 % de la vida (no se puede tanquear), que el robo de vida cure menos de lo que el jefe pega (hay que esquivar), que el mejor set mate como mucho **1,75 veces** más rápido que uno de la rareza anterior, y que no se funda al jefe en menos de 45 s.
+
+Vencerlo en G{profile.GEN_MAX} suma `hairyuFinal`, que abre el tope **60**.

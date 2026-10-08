@@ -1,0 +1,20 @@
+---
+title: Bestiario · Valle de Kiri
+description: Cada yokai del valle con su sprite animado, sus números y sus patrones, leídos de MOBS.
+sidebar: { order: 1, label: 'Valle de Kiri' }
+---
+import Patron from '../../../components/Patron.astro';
+import Beast from '../../../components/Beast.astro';
+import { mobsOf } from '../../../lib/maps.ts';
+
+<Patron kami="susanoo" section="bestiario" />
+
+Todo sale de `shared/mobs/valley.ts`. La vida, el ataque y la defensa son los que el servidor usa al aparecer cada uno **en el mapa donde está** (`mobHp`, `mobAtk`, `mobDef`, con el bonus de jefe de `bossEdge`), no los de su entrada en bruto.
+
+## Monstruos del bosque
+
+{mobsOf('bamboo').mobs.map((m) => <Beast kind={m.kind} />)}
+
+## Jefes del valle
+
+{['suiko', 'bakeneko', 'nekomata', 'aooni', 'kamaitachi'].map((k) => <Beast kind={k} />)}

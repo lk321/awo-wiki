@@ -1,0 +1,97 @@
+/* The shrine: Starlight's chrome in pixel art. Washi grain by day, lacquer veins by night; pixel type for titles and menus;
+   the sidebar as a board of ema tablets; the search as a chōchin; a 2 px vermilion underline on the live link. */
+body { background: var(--sl-color-bg) var(--grain); font-family: var(--font-body); }
+:root:not([data-theme='light']) body { background-image: var(--veins); }
+h1, h2, h3, h4, .site-title, nav.sidebar, .right-sidebar, .pagination-links, .sl-markdown-content th, .tag, .door, figcaption, .starlight-aside__title, .sl-badge, .map header, .theme-toggle, .cell small, .cell b {
+  font-family: var(--font-px); font-weight: 400; letter-spacing: 0;
+}
+.sl-markdown-content h1, .sl-markdown-content h2, .sl-markdown-content h3 { color: var(--sl-color-white); }
+.sl-markdown-content h2, .sl-markdown-content h3 { display: flex; align-items: center; gap: .5rem; }
+.sl-markdown-content h2::before, .sl-markdown-content h3::before {
+  content: ''; flex: none; width: 16px; height: 16px; background: var(--glyph-h2, none) center / 16px 16px no-repeat; image-rendering: pixelated;
+}
+.sl-markdown-content h3::before { width: 8px; height: 8px; background-size: 8px 8px; }
+.sl-markdown-content h2 { border-bottom: 2px solid var(--red); padding-bottom: .25rem; }
+.sl-markdown-content a { text-decoration: none; border-bottom: 2px solid var(--red); color: var(--sl-color-text-accent); }
+.sl-markdown-content a:hover { background: var(--sl-color-accent-low); }
+
+/* header: a lacquer beam, the torii standing in front of the title */
+header.header { background: var(--sl-color-bg-nav) var(--grain); border-bottom: 2px solid var(--red-d); box-shadow: 0 2px 0 var(--lac-d); }
+:root { --sl-nav-height: 4.25rem; }
+.site-title { display: flex; align-items: flex-end; gap: .6rem; text-decoration: none; color: var(--sl-color-white); }
+.site-title awo-torii { display: block; height: 61px; line-height: 0; image-rendering: pixelated; }
+.site-title .title { line-height: 1; font-size: 1.15rem; padding-bottom: 6px; white-space: nowrap; }
+.site-title .title small { display: block; font-size: .7rem; color: var(--gold); margin-bottom: 2px; }
+.site-title .title b { color: var(--red-l); font-weight: 400; }
+.site-title .title em { font-style: normal; font-size: .7rem; color: var(--sl-color-gray-3); margin-left: .5rem; }
+
+/* the search, a chōchin: red paper body, black rings, a gold handle */
+site-search button { background: var(--red); color: var(--paper-l); border: 2px solid var(--lac-d); border-radius: 10px / 14px; box-shadow: inset 2px 0 0 var(--red-l), inset -2px 0 0 var(--red-d), 0 -3px 0 var(--lac-d), 0 3px 0 var(--lac-d); font-family: var(--font-px); }
+site-search button:hover { background: var(--red-l); }
+site-search button kbd { background: var(--lac-d); color: var(--gold); border: 0; }
+dialog[aria-label] { border: 2px solid var(--red); box-shadow: 4px 4px 0 var(--lac-d); background: var(--sl-color-bg) var(--grain); }
+
+/* the theme toggle: a pixel sun by day, a moon by night */
+.theme-toggle { background: none; border: 2px solid var(--sl-color-hairline); padding: 2px 4px 0; cursor: pointer; line-height: 0; }
+.theme-toggle svg { image-rendering: pixelated; }
+.theme-toggle .moon { display: none; }
+:root:not([data-theme='light']) .theme-toggle .sun { display: none; }
+:root:not([data-theme='light']) .theme-toggle .moon { display: inline; }
+
+/* the sidebar: tablets hanging from a board, each section's kami on its summary */
+nav.sidebar .sidebar-pane { background: var(--sl-color-bg-sidebar) var(--grain); border-right: 2px solid var(--sl-color-hairline); }
+nav.sidebar details > summary { font-size: .95rem; padding: .35rem .5rem; margin: .4rem 0 .1rem; background: var(--wood-plate); color: var(--paper-l); border: 2px solid var(--lac-d); box-shadow: inset 1px 1px 0 var(--wood-plate-l), inset -1px -1px 0 var(--wood-plate-d), 2px 2px 0 var(--lac-d); position: relative; display: flex; align-items: center; gap: .5rem; }
+nav.sidebar details > summary::before { content: ''; width: 16px; height: 16px; flex: none; image-rendering: pixelated; background: var(--kami, none) center / 16px no-repeat; }
+nav.sidebar details > summary .caret { color: var(--gold); }
+nav.sidebar details > summary .large { color: inherit; }
+nav.sidebar ul ul li { border-left: 2px solid var(--sl-color-hairline); }
+nav.sidebar a { border-radius: 0; font-size: .9rem; }
+nav.sidebar a[aria-current='page'] { background: var(--sl-color-accent-low); color: var(--sl-color-text-accent); box-shadow: inset 0 -2px 0 var(--red); font-weight: 400; }
+nav.sidebar > ul > li > a { background: var(--wood-plate); color: var(--paper-l); border: 2px solid var(--lac-d); box-shadow: inset 1px 1px 0 var(--wood-plate-l), 2px 2px 0 var(--lac-d); margin: .4rem 0; }
+/* the sections' patrons, in the order of src/sidebar.ts */
+nav.sidebar > ul > li:nth-child(2) > details > summary { --kami: var(--kami-inari); }
+nav.sidebar > ul > li:nth-child(3) > details > summary { --kami: var(--kami-susanoo); }
+nav.sidebar > ul > li:nth-child(4) > details > summary { --kami: var(--kami-raijin); }
+nav.sidebar > ul > li:nth-child(5) > details > summary { --kami: var(--kami-hachiman); }
+nav.sidebar > ul > li:nth-child(6) > details > summary { --kami: var(--kami-amaterasu); }
+nav.sidebar > ul > li:nth-child(7) > details > summary { --kami: var(--kami-ebisu); }
+nav.sidebar > ul > li:nth-child(8) > details > summary { --kami: var(--kami-fujin); }
+nav.sidebar > ul > li:nth-child(9) > details > summary { --kami: var(--kami-daikoku); }
+nav.sidebar > ul > li:nth-child(10) > details > summary { --kami: var(--kami-torii); }
+nav.sidebar > ul > li:nth-child(11) > details > summary { --kami: var(--kami-onmyoji); }
+
+/* the right column, pagination and footer */
+.right-sidebar { border-left: 2px solid var(--sl-color-hairline); }
+.right-sidebar a[aria-current='true'] { color: var(--red-l); box-shadow: inset 0 -2px 0 var(--red); }
+.pagination-links a { border: 2px solid var(--lac-d); border-radius: 0; box-shadow: 3px 3px 0 var(--lac-d); background: var(--plate); }
+.pagination-links a:hover { border-color: var(--red); }
+footer { border-top: 2px solid var(--sl-color-hairline); }
+
+/* asides: an ofuda. White paper, red frame, the Seiman at the corner; the five colours of the kinds become the stamp's ink */
+.starlight-aside { border: 2px solid var(--red); border-left-width: 2px; background: var(--paper-l) var(--grain); color: var(--lac); position: relative; padding-left: 1.25rem; box-shadow: 3px 3px 0 var(--lac-d); }
+:root:not([data-theme='light']) .starlight-aside { background-color: #f1e9d6; }
+.starlight-aside::after { content: ''; position: absolute; right: 6px; top: 6px; width: 16px; height: 16px; image-rendering: pixelated; background: var(--seiman) center / 16px no-repeat; opacity: .9; }
+.starlight-aside__title { color: var(--red-d); }
+.starlight-aside--tip { border-color: var(--jade); } .starlight-aside--tip .starlight-aside__title { color: #2f6a34; }
+.starlight-aside--caution { border-color: var(--gold-d); } .starlight-aside--caution .starlight-aside__title { color: var(--gold-d); }
+.starlight-aside--danger { border-color: var(--red-dd); background-color: #fbe6e0; }
+.starlight-aside a { color: var(--red-d); }
+:root { --seiman: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Cpath fill='%23d0392f' d='M7 1h2v2H7zM6 3h1v2H6zM9 3h1v2H9zM1 5h14v1H1zM2 6h3v1H2zM11 6h3v1H11zM5 7h2v1H5zM9 7h2v1H9zM4 8h1v2H4zM11 8h1v2H11zM6 8h4v1H6zM3 10h1v2H3zM12 10h1v2H12zM5 9h1v2H5zM10 9h1v2H10zM2 12h1v2H2zM13 12h1v2H13zM6 11h1v3H6zM9 11h1v3H9zM7 13h2v1H7z'/%3E%3C/svg%3E"); }
+
+/* tables: a wooden plaque with the grid cut into it */
+.sl-markdown-content table { border: 2px solid var(--lac-d); box-shadow: 3px 3px 0 var(--lac-d); background: var(--plate); font-size: .9rem; }
+.sl-markdown-content thead th { background: var(--wood-plate); color: var(--paper-l); border-color: var(--lac-d); text-shadow: 1px 1px 0 var(--lac-d); }
+.sl-markdown-content td, .sl-markdown-content th { border: 1px solid var(--sl-color-hairline); }
+.sl-markdown-content tr:nth-child(2n) td { background: color-mix(in srgb, var(--plate) 70%, var(--sl-color-bg)); }
+.sl-markdown-content code { border: 1px solid var(--sl-color-hairline); border-radius: 0; }
+.sl-markdown-content hr { border: 0; height: 6px; background: var(--shimenawa) repeat-x; image-rendering: pixelated; margin: 2.5rem 0; }
+:root { --shimenawa: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='6' shape-rendering='crispEdges'%3E%3Crect y='1' width='12' height='3' fill='%23e3cf8a'/%3E%3Crect x='0' y='1' width='3' height='1' fill='%23f0e0a8'/%3E%3Crect x='6' y='1' width='3' height='1' fill='%23f0e0a8'/%3E%3Crect x='3' y='3' width='3' height='1' fill='%23b89a52'/%3E%3Crect x='9' y='3' width='3' height='1' fill='%23b89a52'/%3E%3Crect x='5' y='4' width='2' height='2' fill='%23f4efe6'/%3E%3C/svg%3E"); }
+@media (max-width: 50rem) { .site-title .title em { display: none; } .site-title .title { font-size: 1rem; } }
+
+/* every table scrolls inside its plaque, so a wide one never pushes the page sideways (375 px too) */
+.sl-markdown-content table { display: block; overflow-x: auto; max-width: 100%; }
+.sl-markdown-content table thead, .sl-markdown-content table tbody { display: table; width: 100%; }
+.sl-markdown-content table th, .sl-markdown-content table td { white-space: normal; }
+.sl-markdown-content .hint { font-size: .85rem; color: var(--sl-color-gray-2); margin-top: .4rem; }
+/* a map that fits never steals the page's wheel */
+.map .scroll { overscroll-behavior: auto; }

@@ -1,0 +1,80 @@
+---
+title: Arquitectura
+description: "Procesos, salas, netcode, persistencia e interest management: cómo se sostiene el mundo."
+sidebar: { order: 1, label: 'Arquitectura' }
+---
+import Patron from '../../../components/Patron.astro';
+import { world } from '../../../lib/shared.ts';
+
+<Patron kami="onmyoji" section="tecnico" />
+
+| Pieza | Versión |
+|---|---|
+| Phaser | 4.2.1, cliente con Vite y TypeScript |
+| Colyseus | 0.18.9, servidor autoritativo, schema 5 sin decoradores |
+| MongoDB | driver oficial 7, **sin Mongoose** |
+| Redis | presencia y driver de Colyseus |
+| i18next | 26, solo en el cliente |
+| Ollama | `gemma4:e2b`, **nativo en el host** (en macOS, Docker no tiene GPU Metal) |
+| Node | 22, el servidor corre con `tsx` |
+
+## Las tres capas
+
+**`shared/`** es puro y determinista, y lo importan cliente **y** servidor: movimiento, stats, daño, items, mapas, botín, economía, textos. No importa nada de `server/` ni de `client/`.
+
+**`server/src/`** es la autoridad. La sala (`ZoneRoom`) orquesta; la lógica vive en subsistemas (combate, mobs, progresión, inventario, party, economía, comercio, mercado, duelos, revivir, objetivos, títulos, viajes) que reciben la sala y llaman de vuelta a través de ella. `DungeonRoom` extiende la sala para la arena de un jefe principal.
+
+**`client/src/`** predice y dibuja. La escena orquesta; los subsistemas tienen los objetos de Phaser. La interfaz es **DOM**, no Phaser, y se entera de los cambios por un pequeño store.
+
+## Los invariantes
+
+:::danger[No se rompen]
+1. **`step()` es determinista y es idéntico en los dos lados.** El cliente predice con él y el servidor lo ejecuta con el mismo paso fijo de 1/60 s. Nada de aleatoriedad, `Date.now()` ni dependencias de frame dentro. Una prueba comprueba que la predicción coincide **exactamente** con el servidor.
+2. **El servidor es autoritativo.** El cliente solo manda inputs e intenciones. Daño, hitboxes, i-frames, botín y XP se calculan **solo** en el servidor; los efectos inmediatos del cliente son cosméticos.
+3. **El SLM nunca corre dentro del tick.** Es *fire-and-forget*, nunca lanza, y su salida es entrada no confiable que siempre pasa por el saneado.
+4. **Nunca entran strings de jugadores en el prompt del SLM.**
+5. **Se valida en la frontera de confianza**, que son los handlers de mensajes y las opciones de sala.
+:::
+
+## El tick
+
+{1000 / world.TICK_MS} Hz ({world.TICK_MS} ms). Dentro no hay E/S síncrona ni bucles cuadráticos sin cota. `npm run verify` falla si el tick con 50 jugadores en el bosque pasa de **5 ms de media** o **40 ms de máximo**.
+
+## Interest management
+
+**Cada cliente solo ve lo que tiene cerca.** Jugadores, mobs y proyectiles se filtran con una vista por cliente, así que el cliente **no puede dar por hecho** que tiene a toda la zona (el panel M recibe el total del servidor, aparte).
+
+- Un efecto o un golpe en un punto del mundo se envía **solo a quien lo ve**; la difusión a toda la sala queda para banners, anuncios, chat y el jefe principal en su arena.
+- Lo que tiene que verse en toda la zona (los jefes de campo) se añade a todas las vistas.
+- Una multitud en una pantalla sincroniza los **80 jugadores más cercanos** de cada uno.
+- Las vistas se refrescan cada 6 ticks (3,3 Hz): la caja llega ~110 px más allá del borde, así que nada aparece de golpe.
+
+## Capacidad
+
+**Canales por zona:** una sala llega a **200 clientes**; llena, el matchmaker abre otro canal del mismo mapa, y una party aterriza en el canal de sus compañeros. No son 300 porque el coste de una sala es superlineal: medido en las laderas, con 200 el tick va de 3,6 a 4,3 ms con picos de 14–16; con 300 sube a 8,7–9,7 con picos de **102–133 ms**, fuera de presupuesto y con un tirón que se nota. No se pierde nada al partir, porque una vista ya solo lleva los 80 jugadores más cercanos.
+
+**Varios procesos:** N procesos con su puerto y su dirección pública, el mismo Redis, Mongo y clave de sala. Una sala nueva va al proceso con **menos jugadores** (antes: con menos salas, y tres salas llenas acababan juntas).
+
+**Eventos agrupados:** los efectos y golpes de un tick se envían en un solo mensaje por cliente. Con 300 jugadores, escribir en los sockets bajó del ~22 % al ~15 % de la CPU.
+
+## Persistencia
+
+| Colección | Qué guarda |
+|---|---|
+| `players` | El personaje entero: nivel, XP, bolsa, almacén, equipo, mon, habilidades, títulos, hazañas, objetivos |
+| `sessions` | Las sesiones abiertas |
+| `codes` | Los códigos de verificación por correo |
+| `fights` | La telemetría de **todos** los intentos contra un jefe principal |
+| `bossMem` | La memoria de un jefe **por jugador**: generación, perfil, racha, historial, lecciones, lease de arena |
+| `market` | El mercado global |
+| `hall` | El salón de la fama, para siempre |
+
+Las migraciones son **versionadas e idempotentes**: corren al arrancar y crean índices y la siembra inicial.
+
+**Party en Redis, no en memoria de sala:** vive en <code>{'party:{id}'}</code> y así sobrevive al cambio de zona; cada sala refresca las de sus jugadores cada 2 s.
+
+**Una sesión y una conexión por cuenta:** entrar desde otro sitio expulsa a la anterior.
+
+## Cambio de zona sin carreras
+
+El servidor **guarda el documento antes** de enviar el mensaje de zona, y marca al jugador como «saliendo» para que su salida no lo sobrescriba. Si alguien se desconecta en una arena o una mazmorra, se le guarda **fuera**: el santuario en la puerta del bosque, la guarida junto al torii, las profundidades junto a la cueva.

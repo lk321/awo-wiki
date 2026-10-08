@@ -1,0 +1,102 @@
+---
+title: Mundo 1 · Valle de Kiri
+description: La aldea de Kiri, el bosque de bambú, el laberinto y el santuario del Oni, con sus mapas, monstruos y botín.
+sidebar: { order: 1, label: 'Valle de Kiri' }
+---
+import Patron from '../../../components/Patron.astro';
+import MapView from '../../../components/MapView.astro';
+import Sprite from '../../../components/Sprite.astro';
+import Service from '../../../components/Service.astro';
+import MobTable from '../../../components/tables/MobTable.astro';
+import ZoneBosses from '../../../components/tables/ZoneBosses.astro';
+import DropTable from '../../../components/tables/DropTable.astro';
+import { mapIntro, mapSub, mapName } from '../../../lib/names.ts';
+import { kindsOf, mobsOf, servicesOf, sizeOf } from '../../../lib/maps.ts';
+import { world, game } from '../../../lib/shared.ts';
+
+<Patron kami="inari" section="mundos" />
+
+El primer nivel de mundo: **niveles 1–15**. Una aldea segura, un campo de bambú, una mazmorra en party y el santuario donde te espera tu Oni. Vencerlo en **G20** abre las Montañas Orientales y el tope de nivel **30**.
+
+## Aldea de Kiri
+
+<p>{mapSub('kiri')} · {sizeOf('kiri').w}×{sizeOf('kiri').h} tiles · zona {world.MAPS.kiri.lvl?.join('–')}</p>
+
+{mapIntro('kiri')}
+
+<MapView map="kiri" legend={true} />
+
+Sus servicios (cada uno un bloque del mapa; **E** habla con el más cercano):
+
+<div class="board">
+  {servicesOf('kiri').map((s) => <Service service={s.id} scale={2} />)}
+</div>
+
+La costurera solo trabaja desde el mundo 2: en Kiri no hay telar. Detalle de cada servicio en [Economía y servicios](/economia/servicios/).
+
+## Bosque de Bambú
+
+<p>{mapSub('bamboo')} · {sizeOf('bamboo').w}×{sizeOf('bamboo').h} tiles · nivel {world.MAPS.bamboo.lvl?.join('–')}</p>
+
+{mapIntro('bamboo')}
+
+<MapView map="bamboo" legend={true} />
+
+Cinco sectores: el claro central al noroeste (con el Bakeneko), el bosque profundo al noreste, la marisma del sur con el Suiko, las ruinas del sureste donde despierta el Ao-oni y la **arboleda antigua** del este, la más poblada, con el túnel del laberinto al final de su sendero.
+
+### Sus monstruos
+
+<MobTable kinds={mobsOf('bamboo').mobs.map((m) => m.kind)} map="bamboo" />
+
+### Sus jefes
+
+<ZoneBosses map="bamboo" />
+
+### Botín de la zona
+
+<DropTable map="bamboo" />
+
+## Laberinto de Bambú
+
+<p>{mapSub('takeyabu')} · {sizeOf('takeyabu').w}×{sizeOf('takeyabu').h} tiles · nivel {world.MAPS.takeyabu.lvl?.join('–')} · party de {world.MAPS.takeyabu.party}+</p>
+
+{mapIntro('takeyabu')}
+
+<MapView map="takeyabu" legend={true} />
+
+Se entra por el **túnel de bambú** (`M`) al final del sendero de la arboleda antigua, con su torii *kuroki* delante. Es una **sala compartida**, no una instancia: varias parties coinciden dentro, y así se reúne la multitud de su jefe.
+
+<table>
+  <thead><tr><th>Ventaja de la mazmorra</th><th>Valor</th></tr></thead>
+  <tbody>
+    <tr><td>Niveles de sus mobs</td><td>+{world.MAPS.takeyabu.deep?.boost}</td></tr>
+    <tr><td>XP</td><td>+{Math.round((world.MAPS.takeyabu.deep?.xp ?? 0) * 100)} %</td></tr>
+    <tr><td>Probabilidad de drop</td><td>+{Math.round((world.MAPS.takeyabu.deep?.loot ?? 0) * 100)} %</td></tr>
+    <tr><td>Detección</td><td>×{world.MAPS.takeyabu.deep?.aggro}</td></tr>
+    <tr><td>Persecución</td><td>×{world.MAPS.takeyabu.deep?.leash}</td></tr>
+    <tr><td>Llamada a la manada</td><td>{world.MAPS.takeyabu.deep?.call} px</td></tr>
+  </tbody>
+</table>
+
+Son los mobs del bosque, más fuertes. El **Legendario solo lo suelta la Kamaitachi**: como en todo mapa, un mob normal o un élite llega a Épico como mucho.
+
+<MobTable kinds={kindsOf('takeyabu')} map="takeyabu" role={true} />
+
+<DropTable map="takeyabu" lvl={9} />
+
+## Santuario del Oni
+
+<p>{mapSub('shrine')} · {sizeOf('shrine').w}×{sizeOf('shrine').h} tiles</p>
+
+La arena del jefe principal, tras la puerta `S` del norte del bosque. Instanciada: solo el líder la abre, los compañeros a 120 px entran con él y se pelea **un equipo a la vez**.
+
+<MapView map="shrine" legend={true} />
+
+<Sprite key="oni" scale={3} caption="Oni del Santuario" />
+<Sprite key="tex:torii" scale={2} caption="El torii del santuario (80×61)" />
+
+Todo sobre él, sus fases, sus generaciones y lo que aprende, en [Jefes principales · el Oni](/jefes/oni/).
+
+## Salir del valle
+
+La victoria contra el Oni en **G20** suma `oniFinal`, que abre el tope de nivel 30 y los cuatro mapas del mundo 2. Los vencedores, la primera vez, aparecen directamente en la **aldea de Takane** a los 20 s en lugar de volver a la puerta del bosque.

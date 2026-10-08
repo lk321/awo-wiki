@@ -1,0 +1,68 @@
+---
+title: Niveles, XP y topes
+description: La curva de XP, el tope de nivel por mundo, la caída por diferencia de nivel y por qué nadie sube a hombros.
+sidebar: { order: 1, label: 'Niveles y XP' }
+---
+import Patron from '../../../components/Patron.astro';
+import { game, zones, mains } from '../../../lib/shared.ts';
+import { mapName } from '../../../lib/names.ts';
+
+<Patron kami="fujin" section="progresion" />
+
+## El tope de nivel
+
+Cada zona es un **nivel de mundo**. Vencer a su jefe principal en **G20** (solo o en party, y solo para quien recibe el premio) desbloquea el tramo siguiente. Hay **{game.WORLDS} niveles de mundo** previstos, así que el máximo es **{game.MAX_LEVEL}**.
+
+<table class="data">
+  <thead><tr><th>Jefes principales vencidos en G20</th><th class="num">Tope</th></tr></thead>
+  <tbody>{game.LEVEL_CAPS.map((c, i) => <tr><td>{['Ninguno', 'El del valle (Oni)', '+ el de las montañas (Serpiente)', '+ el de las cumbres (Hairyū)'][i]}</td><td class="num"><b>{c}</b></td></tr>)}</tbody>
+</table>
+
+**En el tope** la XP no suma ni se guarda: la barra queda llena. Al llegar se avisa una vez con el nivel que abrirás, **solo si queda un jefe principal que no has vencido**; si no, la barra dice «Nivel máximo» y no promete un nivel que no existe. La XP de la victoria G20 ya cuenta con el tope nuevo.
+
+## La curva
+
+`xpToNext(nivel)` = `50 · nivel^1.6`, y desde el nivel {game.XP_CLIMB.from} se multiplica por <code>1 + {game.XP_CLIMB.per}·(nivel − {game.XP_CLIMB.from - 1})</code>.
+
+<table class="data">
+  <thead><tr><th class="num">Nivel</th><th class="num">XP al siguiente</th><th class="num">Acumulada</th></tr></thead>
+  <tbody>
+    {[1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 59].map((l) => {
+      let a = 0;
+      for (let i = 1; i < l; i++) a += game.xpToNext(i);
+      return <tr><td class="num">{l}</td><td class="num">{game.xpToNext(l).toLocaleString('es')}</td><td class="num">{a.toLocaleString('es')}</td></tr>;
+    })}
+  </tbody>
+</table>
+
+De 30 a 50 hacen falta **{(() => { let a = 0; for (let i = 30; i < 50; i++) a += game.xpToNext(i); return a.toLocaleString('es'); })()} de XP**; de 15 a 30 eran {(() => { let a = 0; for (let i = 15; i < 30; i++) a += game.xpToNext(i); return a.toLocaleString('es'); })()}.
+
+**Por qué la curva y no menos XP por muerte:** con la curva vieja, para que 30→50 durara semanas cada muerte tendría que pagar unos 50 de XP, menos que un mob de las montañas. Con la curva, un mob del mundo 3 paga 126–336 y aun así hacen falta 100–300 muertes por nivel.
+
+## La XP por muerte cae con la diferencia de nivel
+
+Se calcula con el nivel de **cada** jugador que la recibe. Con `gap = nivel del mob − tu nivel`:
+
+- `gap ≥ 0`: ×`(1 + 0.1·mín(gap, 5))`, hasta **+50 %** contra mobs más fuertes.
+- `gap < 0`, **mobs normales**: ×<code>máx({game.XP_FALL.mob.floor}, 1 + {game.XP_FALL.mob.perLvl}·gap)</code>. Un mob cinco niveles por debajo da solo el {Math.round(game.XP_FALL.mob.floor * 100)} %: farmear hacia abajo no sube.
+- `gap < 0`, **jefes de campo**: ×<code>máx({game.XP_FALL.boss.floor}, 1 + {game.XP_FALL.boss.perLvl}·gap)</code>. Caen a la mitad de ritmo y nunca bajan del {Math.round(game.XP_FALL.boss.floor * 100)} %: son el camino de quien ya supera a su zona.
+
+## Ni llevado a hombros
+
+Un jefe principal se pelea al nivel tope de su mundo, así que un jugador muy por debajo que se deja cargar por veteranos cobraba **completo**: un nivel 30 ganaba **dos niveles** por victoria contra un Hairyū G20, la XP más rápida del juego.
+
+Desde entonces, ninguna victoria contra un jefe principal vale más de **{Math.round(mains.MAIN_XP_SHARE * 100)} % del nivel en curso**. Es un **techo, no una caída**: al nivel al que se pelea de verdad nunca llega a aplicarse (una victoria G20 es 0,21–0,30 de un nivel entre 45 y 50), así que la pelea prevista paga exactamente lo mismo y el dragón sigue siendo lo que más paga por hora. Solo muerde en el acarreo, donde la victoria dejaba de distinguir generaciones.
+
+## El ritmo medido
+
+Un jugador **activo de 12 h a la semana**:
+
+| Ruta | Horas 30→50 | Semanas |
+|---|---|---|
+| Solo en el campo | ~55 | ~4,6 |
+| Mitad solo, mitad en party | ~40 | **~3,3** |
+| La más rápida (party, luego el templo) | ~25 | ~2,1 |
+
+`zones.test.ts` exige que la ruta más rápida tarde **al menos dos semanas**, la mixta **tres**, y que el solitario no pase de seis (un camino largo, no un muro). También que **campo solo < party < templo < dragón gris** en XP por hora, en cada nivel, y que **ningún jefe sea un salto de nivel**: los de campo pagan unos 0,2 de nivel, los errantes 0,35 y los de multitud 0,65 como mucho para el veterano que los despierta.
+
+Al subir de nivel te **curas por completo**.

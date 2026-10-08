@@ -1,0 +1,57 @@
+---
+title: Mon, mercado, comercio y duelos
+description: De dónde sale el dinero, el mercado global con su comisión, la ventana de comercio y la apuesta de un duelo.
+sidebar: { order: 2, label: 'Mercado y comercio' }
+---
+import Patron from '../../../components/Patron.astro';
+import Sprite from '../../../components/Sprite.astro';
+import { economy } from '../../../lib/shared.ts';
+import { MARKET, marketNet } from '../../../lib/market.ts';
+
+<Patron kami="ebisu" section="economia" />
+
+<Sprite key="icon:coin" scale={4} caption="El mon (文)" />
+
+El **mon** es escaso a propósito. Solo se crea en el mundo: drops de monstruos y jefes, objetivos de mapa y la venta en el puesto. Los comercios, el mercado y los duelos **mueven** dinero entre jugadores, no lo crean.
+
+## De dónde sale el mon
+
+Un kill paga mon con probabilidad `mín(90 %, 20 % + 6 %·nivel)`; **los jefes siempre pagan**. Un jefe da `nivel · 8 · (1 + aleatorio)`, un mob normal `nivel + 1 + aleatorio·nivel·1.5`. Después se multiplica por el mundo:
+
+<table class="data">
+  <thead><tr><th class="num">Mundo</th><th class="num">Multiplicador</th></tr></thead>
+  <tbody>{Object.entries(economy.WORLD_MON_MULT).map(([w, m]) => <tr><td class="num">{w}</td><td class="num">×{m}</td></tr>)}</tbody>
+</table>
+
+Solo afecta a la **creación directa** (los drops), nunca al puesto, al mercado ni a los duelos: acorta el farmeo, no añade poder.
+
+## El mercado global
+
+Se abre con **B** o con el botón bajo el minimapa, desde cualquier mapa. Tres pestañas: **comprar** (con buscador y filtros por categoría, rareza y Extra), **vender** y **mis ventas**.
+
+- **Comisión del {MARKET.fee} %** sobre la venta, que desaparece del juego: es el sumidero.
+- El vendedor cobra por Redis aunque no esté conectado.
+- Lo comprado se retira al **almacén**. Vender una pieza de 1 000 mon deja {marketNet(1000).toLocaleString('es')} al vendedor.
+- Hasta **{MARKET.maxListings} ventas activas** por jugador, de {MARKET.page} en {MARKET.page} por página.
+- Acepta **skins** y el fragmento Kintsugi; el puesto no.
+- Dos piezas iguales valen distinto según sus Extras, y el mercado es donde eso se nota: cada fila los lista en el color de su rareza.
+
+## Comercio entre jugadores
+
+`/trade <nombre>` a alguien que esté cerca abre una ventana donde **cada lado pone objetos y cuánto mon pide por ellos**. Hay **doble confirmación con revisión**: cualquier cambio en lo ofrecido invalida las confirmaciones, y el intercambio es atómico. Funciona en cualquier mapa.
+
+## Duelos
+
+`/duel <nombre> [apuesta]` reta a alguien cercano; la apuesta en mon es opcional, hasta {economy.MAX_BET.toLocaleString('es')}.
+
+- La apuesta queda **en depósito** mientras dura el duelo.
+- Cuenta atrás de 3 · 2 · 1 y «¡VAMOS!», visible **solo para los dos**.
+- Es PvP entre ellos: nadie más entra. Se gana por **K.O.**, sin muerte real.
+- **Abandonar es perder.**
+- El ganador se lleva las dos apuestas menos la comisión del {Math.round(economy.DUEL_FEE * 100)} %: <code>{economy.duelPrize(1000).toLocaleString('es')} mon</code> de dos apuestas de 1 000.
+
+Las victorias seguidas dan el título temporal **Campeón invicto** (5 seguidas, 24 h, renovado por cada victoria posterior).
+
+## Peticiones entre jugadores
+
+`/trade`, `/duel` e `/invite<code> son **peticiones**: al otro le sale un diálogo de sí o no que caduca a los {30} s. Un «no» deja una espera antes de poder repetir, y el servidor distingue un diálogo **no visto** (</code>busy`) de un «no»: reintentar una petición nunca se silencia solo.

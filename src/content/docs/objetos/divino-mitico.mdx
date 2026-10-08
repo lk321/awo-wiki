@@ -1,0 +1,87 @@
+---
+title: Divino, Mítico y los Extras
+description: Las dos rarezas del endgame, el roll original que no cambia nunca, la fusión y la pieza maestra.
+sidebar: { order: 2, label: 'Divino y Mítico' }
+---
+import Patron from '../../../components/Patron.astro';
+import Frame from '../../../components/Frame.astro';
+import { game, loot, economy } from '../../../lib/shared.ts';
+import { rarityName, statName } from '../../../lib/names.ts';
+
+<Patron kami="amaterasu" section="objetos" />
+
+Dos rarezas por encima de Legendario, hechas con las mecánicas que ya había: rareza = número de afijos, botín por fuente, fusión, nivel, mejora, comercio y mercado. **No hay moneda ni progresión nueva.** Lo único nuevo son los **Extras**.
+
+<div class="board">
+  <Frame base="magatama" rarity={4} ilvl={20} plus={9} extras={3} maxed={true} caption="Divino · 3 Extras · pieza maestra" />
+  <Frame base="do" rarity={5} ilvl={20} plus={9} extras={3} maxed={true} caption="Mítico · 3 Extras · pieza maestra" />
+  <Frame base="kinfuda" rarity={4} ilvl={14} extras={1} caption="Divino recién caído" />
+  <Frame base="kintsugi" rarity={3} ilvl={1} caption="Fragmento Kintsugi" />
+</div>
+
+## Los Extras
+
+Líneas de bonus de los stats que ya existen, guardadas en `Item.extras`. Se generan **una sola vez**, la primera vez que la pieza existe como Divino o Mítico: al caer, o al fusionar un legendario hasta divino. Que el campo exista es el candado; `[]` significa «se tiró y salieron 0».
+
+<table class="data">
+  <thead><tr><th class="num">Extras</th><th class="num">Probabilidad</th></tr></thead>
+  <tbody>{game.EXTRAS.odds.map((p, i) => <tr><td class="num">{i}</td><td class="num">{(p * 100).toFixed(0)} %</td></tr>)}</tbody>
+</table>
+
+| Slot | Tipos posibles |
+|---|---|
+| Arma | {game.EXTRAS.pool.weapon.map((k) => statName(k)).join(', ')} |
+| Armadura | {game.EXTRAS.pool.armor.map((k) => statName(k)).join(', ')} |
+| Amuleto | {game.EXTRAS.pool.amulet.map((k) => statName(k)).join(', ')} |
+
+Cada uno vale **medio afijo** (×{game.EXTRAS.scale}) tirado al nivel de objeto con el que nace la pieza. Se suman como **valor absoluto**: el nivel de objeto y la mejora no los tocan, pero el desgaste sí.
+
+:::tip[Inmutables]
+Subir de nivel, mejorar, fusionar (de nivel, o de Divino a Mítico: **los conserva**), equipar, comerciar, poner en el mercado, guardar en la base de datos y reiniciar **no los cambian**. Lo único que los vuelve a tirar es un fragmento Kintsugi.
+:::
+
+## Dónde caen
+
+Divino y Mítico no crecen con el nivel de la fuente, sino con su **mundo**, cada uno desde el suyo: **Divino desde el mundo {loot.HIGH_ODDS.from[0]}, Mítico desde el {loot.HIGH_ODDS.from[1]}**. En el valle no cae ninguno.
+
+<table class="data">
+  <thead><tr><th class="num">Mundo</th><th class="num">Legendario</th><th class="num">Divino</th><th class="num">Mítico</th></tr></thead>
+  <tbody>
+    {[1, 2, 3, 4].map((w) => (
+      <tr>
+        <td class="num">{w}</td><td class="num">1 %</td>
+        <td class="num">{(loot.highOdds(w)[0] * 100).toFixed(3).replace(/0+$/, '').replace(/\.$/, '')} %</td>
+        <td class="num">{(loot.highOdds(w)[1] * 100).toFixed(4).replace(/0+$/, '').replace(/\.$/, '') || '0'} %</td>
+      </tr>
+    ))}
+  </tbody>
+</table>
+
+Son las probabilidades base antes del bonus, y **solo las tiran los jefes**. El bonus de jefe pesa ×(1 + 5b) en Divino y ×(1 + 6b) en Mítico; los topes son {game.RARITY_LVL && '2 %'} y 0,5 %, y en G20 un jefe principal los sube a 3 % y 0,8 %.
+
+El **mundo 3** añade un **+1,2 % relativo** a Legendario y Divino, después de topes, nerfs y bonus: para la misma fuente, mundo 3 ÷ mundo 2 = {loot.HIGH_BOOST[3]} exacto, y Raro, Épico y Mítico no se mueven (el Común absorbe la diferencia).
+
+## Fusión
+
+Legendario → Divino → Mítico, **solo desde el techo de la rareza** (`rarityCap`): común, raro y épico se quedan en {game.ILVL_CAP.base}; legendario, divino y mítico llegan a {game.MAX_ILVL}, **sin importar el mundo en el que estés**. Por debajo del techo, el herrero te dice que lo subas primero.
+
+- **Dos piezas en total:** la elegida más **una copia idéntica** de la bolsa (misma base, rareza y nivel; sus afijos, Extras y +N se pierden con ella).
+- **Cada salto baja {game.RARITY_RESET} niveles**: un legendario de nivel 20 pasa a divino de nivel {20 - game.RARITY_RESET}, un {Math.round((game.RARITY_EDGE - 1) * 100)} % por debajo de lo que era a +9, y se vuelve a subir en la herrería. El +N empieza de cero.
+- **Cada rareza desde su mundo:** pasar a Divino exige las montañas abiertas; a Mítico, el mundo 3. El nivel de objeto ya no entra en la puerta, solo el mundo.
+- **Fallo** por rareza actual: {game.RARITY.map((_, i) => `${rarityName(i)} ${Math.round(economy.FUSE_FAIL[i] * 100)} %`).join(', ')}. El mon y la copia se pierden; la pieza se queda como estaba.
+
+La fusión **no sube el nivel de objeto**: eso es trabajo del herrero con mon. Juntar dos legendarios iguales ya pide varios legendarios por cada divino, y además hay que subirlos los dos desde donde caen (11–13) hasta 20: unos 48 000 mon por pieza solo en niveles, más la cuota y el 30 % de fallo. **Esperar el drop sigue siendo competitivo.**
+
+## Pieza maestra
+
+Legendario o mejor, **+{game.MAX_PLUS}** y nivel de objeto ≥ {game.ILVL_CAP.base}. Lo ven todos igual, porque solo depende del objeto. En su celda el borde recorre la paleta de su rareza, un anillo interior de 1 px alterna colores y una estrella de cuatro frames late saltando de esquina en esquina. Solo en la interfaz: nunca sobre el personaje ni en el combate, y con `prefers-reduced-motion` queda quieta.
+
+## El fragmento Kintsugi
+
+Cerámica rota reparada con oro: un material **legendario** sin stats que **reforja lo aleatorio de una pieza y se gasta**. Lo da todo jefe principal desde **G{economy.REROLL.from}** con un **{Math.round(economy.REROLL.chance * 100)} %** por vencedor, con tope de **{economy.REROLL.daily} cada 24 h** por jugador.
+
+- En equipo: **afijos nuevos** (tantos como su rareza, a su nivel actual).
+- En Divino o Mítico: además **Extras nuevos** (una tirada de 0–3 entera).
+- En skins: sus 2–3 líneas de nuevo.
+
+Conserva base, rareza, nivel, +N, salud, id y firma. Tras tirar, una ventana muestra **antes y después** y eliges con qué te quedas. No se equipa, no se mejora, no sube de nivel y no se fusiona; sí se guarda, se tira, se comercia y se vende.

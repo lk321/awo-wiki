@@ -1,0 +1,36 @@
+---
+title: Bestiario · Cumbres Ancestrales
+description: Las dieciséis familias nuevas, los trece élites, los exclusivos del Templo de Yomi y los diez jefes del mundo 3.
+sidebar: { order: 3, label: 'Cumbres Ancestrales' }
+---
+import Patron from '../../../components/Patron.astro';
+import Beast from '../../../components/Beast.astro';
+import { mobsOf } from '../../../lib/maps.ts';
+
+<Patron kami="susanoo" section="bestiario" />
+
+Dieciséis familias nuevas, ninguna repetida de las montañas. **Regla de números** de un mob estándar: vida ≈ 25·nivel y ataque ≈ 4.6·nivel, de modo que un jugador de su nivel con su equipo lo mata en unos 4 s y pierde un 8 % por golpe. Los cañones de cristal y los tanques se apartan de eso a propósito. Datos: `shared/mobs/ancestral.ts` y `ancestralBosses.ts`.
+
+## Laderas Ancestrales
+
+{mobsOf('sorei').mobs.map((m) => <Beast kind={m.kind} />)}
+
+### Sus élites
+
+{mobsOf('sorei').elites.map((m) => <Beast kind={m.kind} />)}
+
+## Cumbres Negras
+
+{mobsOf('kuromine').mobs.map((m) => <Beast kind={m.kind} />)}
+
+### Sus élites
+
+{mobsOf('kuromine').elites.map((m) => <Beast kind={m.kind} />)}
+
+## Templo Hundido de Yomi
+
+{[...mobsOf('yomi').mobs, ...mobsOf('yomi').elites].map((m) => <Beast kind={m.kind} />)}
+
+## Jefes del mundo 3
+
+{['hannya', 'shogun', 'nue', 'gasha', 'ibaraki', 'mukade', 'sojobo', 'shuten', 'honemusha', 'izanami'].map((k) => <Beast kind={k} />)}

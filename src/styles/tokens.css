@@ -1,0 +1,35 @@
+/* The wiki's palette is the game's (docs/art.md): torii red, lacquer, stone, gold, washi paper. Day = washi, night = black lacquer. */
+:root {
+  --red-l: #ef6a55; --red: #d0392f; --red-d: #9e2a24; --red-dd: #8e2420;
+  --lac-l: #4a3a40; --lac: #2e2428; --lac-d: #1b1418; --out: #160f14;
+  --stone-l: #8a857f; --stone: #6e6a66; --stone-d: #4c4844; --stone-ll: #a39d97;
+  --gold-l: #f8e7a0; --gold: #e3c15a; --gold-d: #a8842a;
+  --paper-l: #fffaf0; --paper: #f6efdc; --paper-d: #d6c6a0;
+  --wood-l: #c08a52; --wood: #8e6038; --wood-d: #5e3e22;
+  --jade: #5aa04a; --indigo: #3a4f9a;
+  --font-px: 'DotGothic16', 'Noto Sans JP', monospace;
+  --font-body: 'Noto Sans JP', system-ui, sans-serif;
+  /* the washi grain and the lacquer's veins: 4×4 dither tiles, never smoothed */
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4' shape-rendering='crispEdges'%3E%3Crect x='1' y='0' width='1' height='1' fill='%23000' fill-opacity='.045'/%3E%3Crect x='3' y='2' width='1' height='1' fill='%23000' fill-opacity='.03'/%3E%3C/svg%3E");
+  --veins: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' shape-rendering='crispEdges'%3E%3Crect x='0' y='3' width='3' height='1' fill='%23fff' fill-opacity='.025'/%3E%3Crect x='5' y='6' width='2' height='1' fill='%23fff' fill-opacity='.02'/%3E%3C/svg%3E");
+}
+/* Starlight's tokens, day: washi, lacquer text, red accent, gold hairlines */
+:root[data-theme='light'] {
+  --sl-color-accent-low: #f6d9d2; --sl-color-accent: var(--red); --sl-color-accent-high: var(--red-dd);
+  --sl-color-white: var(--lac-d); --sl-color-gray-1: var(--lac); --sl-color-gray-2: var(--lac-l); --sl-color-gray-3: var(--stone-d);
+  --sl-color-gray-4: var(--stone-l); --sl-color-gray-5: var(--paper-d); --sl-color-gray-6: #ece3cc; --sl-color-gray-7: var(--paper);
+  --sl-color-black: var(--paper-l); --sl-color-bg: var(--paper); --sl-color-bg-nav: #efe6d0; --sl-color-bg-sidebar: #efe6d0;
+  --sl-color-text: var(--lac); --sl-color-text-accent: var(--red-d); --sl-color-hairline: var(--paper-d); --sl-color-hairline-light: #e6dcc2;
+  --sl-color-bg-inline-code: #ece3cc; --sl-color-text-invert: var(--paper-l);
+  --plate: var(--paper-l); --plate-edge: var(--paper-d); --wood-plate: #c9a06a; --wood-plate-d: #8a6038; --wood-plate-l: #e0bd86;
+}
+/* night: black lacquer, paper text, vermilion and gold */
+:root, :root[data-theme='dark'] {
+  --sl-color-accent-low: #3a1a1a; --sl-color-accent: var(--red-l); --sl-color-accent-high: #ffb3a4;
+  --sl-color-white: var(--paper-l); --sl-color-gray-1: var(--paper); --sl-color-gray-2: var(--paper-d); --sl-color-gray-3: var(--stone-ll);
+  --sl-color-gray-4: var(--stone); --sl-color-gray-5: var(--lac-l); --sl-color-gray-6: var(--lac); --sl-color-gray-7: #221b1e;
+  --sl-color-black: var(--lac-d); --sl-color-bg: var(--lac-d); --sl-color-bg-nav: #140e12; --sl-color-bg-sidebar: #140e12;
+  --sl-color-text: var(--paper); --sl-color-text-accent: var(--gold); --sl-color-hairline: var(--lac-l); --sl-color-hairline-light: #3a2e34;
+  --sl-color-bg-inline-code: #2a2026; --sl-color-text-invert: var(--lac-d);
+  --plate: #221b1e; --plate-edge: var(--lac-l); --wood-plate: #5e3e22; --wood-plate-d: #3a2616; --wood-plate-l: #8e6038;
+}

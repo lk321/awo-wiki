@@ -1,0 +1,77 @@
+---
+title: Los paneles
+description: "Cada pantalla del juego, capturada del juego real: login, HUD, bolsa, perfil, servicios, mercado y configuración."
+sidebar: { order: 1, label: 'Los paneles' }
+---
+import Patron from '../../../components/Patron.astro';
+import Shot from '../../../components/Shot.astro';
+
+<Patron kami="daikoku" section="interfaz" />
+
+Toda la interfaz es **DOM por encima del canvas**, no objetos de Phaser: así el texto se puede seleccionar, las tablas se desplazan y los paneles se estilan con CSS. La escena llama a la interfaz, nunca al revés; los paneles se enteran de los cambios por un pequeño store y no se importan entre sí.
+
+Estas capturas salen del **juego real**, conducido con Playwright (`npm run shots`).
+
+## Entrar
+
+<Shot name="login" alt="La pantalla de inicio de sesión con el fondo del Fuji al atardecer" caption="El login: el Fuji al atardecer, el torii en el lago y los cerezos, con pétalos cayendo. La clase se elige solo al crear la cuenta." />
+
+El fondo es una escena de pixel art pintada una vez y cacheada, con 46 pétalos cayendo por encima; está quieta a propósito, porque un mapa que se desplazaba mareaba. Con `prefers-reduced-motion` los pétalos no caen.
+
+## El HUD y el mundo
+
+<Shot name="kiri" alt="La aldea de Kiri vista en el juego" caption="Aldea de Kiri. Arriba a la izquierda, el retrato, la vida, la XP y el mon; a la derecha, el minimapa y los objetivos del mapa." />
+
+<Shot name="bamboo" alt="El bosque de bambú" caption="Bosque de Bambú: el primer campo, con sus kodama, sus kappa y sus kitsune-bi." />
+
+El HUD se alimenta **cada frame**: barras, el jefe, los punteros hacia lo que importa, el minimapa, los objetivos y el tooltip al pasar el ratón (solo estando quieto y tras 450 ms, para que no moleste mientras peleas).
+
+## La bolsa
+
+<Shot name="bag" alt="El panel de inventario con sus cuatro slots y la bolsa" caption="La bolsa (I): arma, armadura, amuleto y skin arriba; abajo las 24 celdas, cada una con su marco de rareza, su nivel y su +N." />
+
+Clic para equipar (intercambia con lo que llevas) o para quitarte algo; clic derecho para tirar. El botón de configuración abre qué rarezas se tiran solas al recogerlas.
+
+## El perfil
+
+<Shot name="profile" alt="El panel de perfil con las pestañas de personaje y títulos" caption="El perfil (P): pestaña Personaje con los stats de nivel y de equipo, y pestaña Títulos." />
+
+## Los servicios de la aldea
+
+<Shot name="stall" alt="El panel del puesto del mercader" caption="El puesto ($): comprar equipo común a tu nivel y vender, con venta por rareza." />
+
+<Shot name="smith" alt="El panel del herrero" caption="El herrero (G): reparar, mejorar hasta +9, subir el nivel de objeto hasta el techo de su rareza y fusionar." />
+
+<Shot name="healer" alt="El panel de la curandera" caption="La curandera (D): sube la habilidad y la definitiva, cada una en su pestaña." />
+
+<Shot name="seamstress" alt="El telar de la costurera con las ocho skins" caption="El telar de Itohime (§, desde el mundo 2): las ocho skins, las piezas que tomaría de tu bolsa y coser con confirmación." />
+
+<Shot name="storage" alt="El almacén junto a la bolsa" caption="El almacén (E junto al kura): 64 huecos; un clic mueve una pieza entre la bolsa y el almacén." />
+
+<Shot name="stele" alt="La estela de la memoria del Oni" caption="La estela (E en la losa): una pestaña por jefe de la zona, con el principal por defecto; su fuerza, sus poderes, sus resistencias y su historial de lecciones." />
+
+<Shot name="teleport" alt="El panel de viajes del onmyōji" caption="El onmyōji (E en su tatami): las aldeas abiertas, cada una con su cuota." />
+
+## La información de la zona
+
+<Shot name="zone-info" alt="El panel de información de zona con sus jefes y su botín" caption="Información de la zona (M): el rango, los jefes con su estado y su cuenta atrás, la pista del jefe de multitud y el botín para tu nivel." />
+
+## El mercado
+
+<Shot name="market" alt="El mercado global con su buscador" caption="El mercado global (B o el botón bajo el minimapa): comprar con buscador y filtros, vender con comisión, y mis ventas." />
+
+## El chat
+
+<Shot name="chat" alt="El chat con sus filtros y la lista de comandos" caption="El chat: sus filtros arriba (Todo y un grupo por pestaña, con aviso de no leídos) y /help listando los comandos." />
+
+## La configuración
+
+<Shot name="settings" alt="El panel de configuración" caption="Configuración (Esc sin ningún panel abierto, o el engranaje): música y efectos por separado, idioma en partida y la lista de controles." />
+
+## En el móvil
+
+<Shot name="touch" alt="El juego en una pantalla de móvil con sus controles táctiles" width={375} caption="A 375 px: el joystick flotante, la barra de habilidades como botones, el botón E y el menú colapsado." />
+
+## La arena
+
+<Shot name="shrine" alt="El santuario del Oni" caption="El santuario: la arena del Oni, con sus dos sellos y el círculo de invocación quemado en las losas." />

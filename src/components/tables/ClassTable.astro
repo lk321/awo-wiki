@@ -1,0 +1,24 @@
+---
+// The four classes: their sheet and portrait, the weapon's numbers (WEAPON_CD, MOVES, ULT_*) and what CLASS does to the character.
+import Sprite from '../Sprite.astro';
+import { game } from '../../lib/shared.ts';
+import { className, itemName, skillName } from '../../lib/names.ts';
+const weapons = Object.keys(game.STARTER) as game.Weapon[];
+const k = (w: game.Weapon) => game.CLASS[w];
+---
+<table class="data">
+  <thead><tr><th>Héroe</th><th>Clase</th><th>Arma</th><th class="num">Ataque (cd)</th><th>Habilidad (Q)</th><th>Definitiva (R)</th><th>Multiplicadores</th></tr></thead>
+  <tbody>
+    {weapons.map((w) => (
+      <tr>
+        <td><Sprite key={`hero:${w}`} scale={2} label={false} single={true} /></td>
+        <td><b>{className(w)}</b><br /><code>{w}</code></td>
+        <td>{itemName(game.STARTER[w])}<br /><small>{itemName(Object.keys(game.BASES).find((b) => game.BASES[b].weapon === w && game.BASES[b].minLvl)!)}</small></td>
+        <td class="num">{game.WEAPON_CD[w][0]} s</td>
+        <td><b>{skillName(w)}</b><br /><small>{game.WEAPON_CD[w][1]} s</small></td>
+        <td><small>{game.ULT_CD[w]} s · nivel {game.MOVES && 30}</small></td>
+        <td><small>{k(w) ? `vida ×${k(w)!.hp} · def ×${k(w)!.def} · atk ×${k(w)!.atk} · vel ×${k(w)!.speed}` : 'sin multiplicadores (×1)'}</small></td>
+      </tr>
+    ))}
+  </tbody>
+</table>

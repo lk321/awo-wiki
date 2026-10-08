@@ -1,0 +1,100 @@
+---
+title: Mundo 3 · Cumbres Ancestrales
+description: Hanazono, las Laderas y las Cumbres Negras, el Templo Hundido de Yomi y el Nido del Dragón Ancestral Gris.
+sidebar: { order: 3, label: 'Cumbres Ancestrales' }
+---
+import Patron from '../../../components/Patron.astro';
+import MapView from '../../../components/MapView.astro';
+import Sprite from '../../../components/Sprite.astro';
+import Service from '../../../components/Service.astro';
+import MobTable from '../../../components/tables/MobTable.astro';
+import ZoneBosses from '../../../components/tables/ZoneBosses.astro';
+import DropTable from '../../../components/tables/DropTable.astro';
+import TitleTable from '../../../components/tables/TitleTable.astro';
+import { mapIntro, mapSub } from '../../../lib/names.ts';
+import { kindsOf, mobsOf, servicesOf, sizeOf } from '../../../lib/maps.ts';
+import { world } from '../../../lib/shared.ts';
+
+<Patron kami="inari" section="mundos" />
+
+El tercer nivel de mundo: **niveles 30–50**. Se entra venciendo a la **Serpiente Milenaria en G20**. Aquí cae el **Mítico**, los objetos dejan de crecer (siguen en nivel 20 y +9: el salto de este mundo es la rareza) y Legendario y Divino caen un **1,2 % relativo** más que en las montañas.
+
+El campo abierto son **dos mapas**: así cada uno tiene su subjefe, su jefe de campo, su errante y su jefe de multitud sin tocar el sistema, y una multitud se reparte en dos salas.
+
+## Aldea de Hanazono
+
+<p>{mapSub('hanazono')} · {sizeOf('hanazono').w}×{sizeOf('hanazono').h} tiles · zona {world.MAPS.hanazono.lvl?.join('–')}</p>
+
+{mapIntro('hanazono')}
+
+<MapView map="hanazono" legend={true} />
+
+Un valle de cerezos con un gran lago de koi, dos puentes de tambor (*taikobashi*, con las barandillas arqueadas), una pagoda de cinco pisos y casas *gasshō-zukuri* de tejado de paja empinado: el diseño de montaña del mundo 3.
+
+<div class="board">
+  {servicesOf('hanazono').map((s) => <Service service={s.id} scale={2} />)}
+</div>
+
+## Laderas Ancestrales
+
+<p>{mapSub('sorei')} · {sizeOf('sorei').w}×{sizeOf('sorei').h} tiles · nivel {world.MAPS.sorei.lvl?.join('–')}</p>
+
+{mapIntro('sorei')}
+
+<MapView map="sorei" legend={true} />
+
+Cuatro regiones: la **frontera de las montañas** (30–33, los muertos del imperio en sus caminos), el **bosque ancestral** (33–36, sugi gigantes y ecos que curan), el **valle de los espíritus** (36–40, filas de jizō, la Hannya en su hondonada) y las **ruinas del imperio antiguo** (40–43, patios de losas, el Kodai-shōgun y la escalera del templo).
+
+<MobTable kinds={mobsOf('sorei').mobs.map((m) => m.kind)} map="sorei" />
+
+<MobTable kinds={mobsOf('sorei').elites.map((m) => m.kind)} map="sorei" role={true} />
+
+<ZoneBosses map="sorei" />
+
+<DropTable map="sorei" />
+
+## Cumbres Negras
+
+<p>{mapSub('kuromine')} · {sizeOf('kuromine').w}×{sizeOf('kuromine').h} tiles · nivel {world.MAPS.kuromine.lvl?.join('–')}</p>
+
+{mapIntro('kuromine')}
+
+<MapView map="kuromine" legend={true} />
+
+Tres regiones: las **montañas negras** (43–46, Ibaraki-dōji ante su santuario), el **dominio de las bestias** (46–48, el Ōmukade entre barrancos) y la **cumbre del dragón** (48–50, nieve, la cría del dragón y el gran torii al norte).
+
+<MobTable kinds={mobsOf('kuromine').mobs.map((m) => m.kind)} map="kuromine" />
+
+<MobTable kinds={mobsOf('kuromine').elites.map((m) => m.kind)} map="kuromine" role={true} />
+
+<ZoneBosses map="kuromine" />
+
+<DropTable map="kuromine" lvl={45} />
+
+## Templo Hundido de Yomi
+
+<p>{mapSub('yomi')} · {sizeOf('yomi').w}×{sizeOf('yomi').h} tiles · nivel {world.MAPS.yomi.lvl?.join('–')} · party de {world.MAPS.yomi.party}+</p>
+
+{mapIntro('yomi')}
+
+<MapView map="yomi" legend={true} />
+
+Diez sectores (dos opcionales) bajo las ruinas, con la misma ventaja de mazmorra que las Profundidades: **+{world.MAPS.yomi.deep?.boost} niveles**, +{Math.round((world.MAPS.yomi.deep?.xp ?? 0) * 100)} % de XP y +{Math.round((world.MAPS.yomi.deep?.loot ?? 0) * 100)} % de probabilidad de drop.
+
+<MobTable kinds={kindsOf('yomi')} map="yomi" role={true} />
+
+<DropTable map="yomi" lvl={47} />
+
+## Nido del Ancestro
+
+<p>{mapSub('nest')} · {sizeOf('nest').w}×{sizeOf('nest').h} tiles</p>
+
+<MapView map="nest" legend={true} />
+
+<Sprite key="hairyu" scale={1} caption="Hairyū, el Dragón Ancestral Gris (128×96)" />
+
+Una meseta nevada en la cumbre, con el anillo roto del último altar del imperio y los dos sellos a los lados: sitio para volar, embestir y barrer. Todo sobre él en [Hairyū](/jefes/hairyu/).
+
+## Títulos del mundo 3
+
+<TitleTable world={3} />

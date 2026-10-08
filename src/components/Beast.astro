@@ -1,0 +1,57 @@
+---
+// One monster's full entry: its sheet animated, the numbers the server spawns it with at each map it stands in, its traits
+// and, if it is a field boss, every pattern with its windup, its multiplier and the band of distance that picks it.
+import Sprite from './Sprite.astro';
+import { game } from '../lib/shared.ts';
+import { mapName, mobName, patternName } from '../lib/names.ts';
+import { mapsOfMob, sheetOf } from '../lib/maps.ts';
+import { roleName } from '../lib/names.ts';
+interface Props { kind: string }
+const { kind } = Astro.props;
+const m = game.MOBS[kind];
+if (!m) throw new Error(`Beast: mob desconocido «${kind}»`);
+const where = mapsOfMob(kind);
+const lvl = where[0]?.lvl ?? m.lvl, e = m.boss ? game.bossEdge(lvl) : undefined;
+const kinds: Record<string, string> = { arc: 'arco cuerpo a cuerpo', dash: 'embestida en línea', ring: 'anillo de proyectiles', rain: 'círculos marcados bajo los jugadores', summon: 'invoca a los suyos' };
+const traits = [
+  m.ranged && `a distancia (${m.range} px, proyectil ${m.proj ?? 'foxfire'})`, m.fly && 'vuela', m.lurk && 'al acecho hasta que despierta',
+  m.pack && `manada: llama a los suyos a ${m.pack} px`, m.heal && `cura al más herido a ${m.heal.r} px un ${Math.round(m.heal.pct * 100)} % cada ${m.heal.every} s`,
+  m.kite && `retrocede si te acercas a ${m.kite} px`, m.armor && `armadura +${m.armor}`, m.wide === Math.PI ? 'golpea en 360°' : m.wide && `arco ancho (${m.wide} rad)`,
+  m.elite && `élite de ${mobName(m.elite.look)}: se dibuja con su hoja a ×1.25 con aura dorada, +${Math.round(m.elite.bonus * 100)} % de rareza, botín seguro, reaparece a los ${m.elite.respawn} s`,
+].filter(Boolean) as string[];
+const details = (p: game.BossPattern) => p.kind === 'arc' ? `radio ${p.reach} px, semiángulo ${p.half === Math.PI ? 'π (360°)' : p.half.toFixed(2)} rad`
+  : p.kind === 'dash' ? `${p.speed} px/s durante ${p.time} s (${Math.round(p.speed * p.time)} px), toca a ${p.hitR} px`
+  : p.kind === 'ring' ? `${p.n} proyectiles (${p.nEnraged} enfurecido) de ${p.proj} a ${p.speed} px/s, vida ${p.life} s`
+  : p.kind === 'rain' ? `${p.n} círculos de ${p.r} px en ${p.spread} px, proyectil ${p.proj}`
+  : `${p.n} ${mobName(p.mob)} (máx. ${p.max} vivos)`;
+---
+<section class="beast" id={kind}>
+  <h3>{mobName(kind)} <small class="count">nivel {lvl}{m.boss ? ' · jefe' : m.elite ? ' · élite' : ''}</small></h3>
+  <div class="beast-body">
+    <Sprite key={sheetOf(kind)} scale={3} caption={mobName(kind)} />
+    <table class="data">
+      <tbody>
+        <tr><th>Vida</th><td class="num">{game.mobHp(m, lvl).toLocaleString('es')}</td><th>Ataque</th><td class="num">{Math.round(game.mobAtk(m, lvl))}</td></tr>
+        <tr><th>Defensa</th><td class="num">{game.mobDef(m, lvl)}</td><th>XP</th><td class="num">{m.xp.toLocaleString('es')}</td></tr>
+        <tr><th>Velocidad</th><td class="num">{m.speed} px/s</td><th>Aggro</th><td class="num">{m.aggro} px</td></tr>
+        <tr><th>Alcance</th><td class="num">{m.range} px</td><th>Windup / cd</th><td class="num">{m.windup} / {m.cd} s</td></tr>
+        {e && <tr><th>Crítico</th><td class="num">{Math.round(e.crit * 100)} %</td><th>Robo de vida</th><td class="num">{Math.round(e.leech * 100)} %</td></tr>}
+        {m.boss && <tr><th>Correa</th><td class="num">{m.boss.leash} px</td><th>Reaparece</th><td class="num">{m.boss.respawn >= 60 ? `${Math.round(m.boss.respawn / 60)} min` : `${m.boss.respawn} s`}</td></tr>}
+      </tbody>
+    </table>
+  </div>
+  {traits.length > 0 && <p class="traits">{traits.join(' · ')}</p>}
+  {m.skill && <p class="traits">Habilidad cada {m.skill.every} s: {kinds[m.skill.pattern.kind]}, windup {m.skill.pattern.windup} s, daño ×{m.skill.pattern.mult}.</p>}
+  {m.boss && (
+    <table class="data">
+      <thead><tr><th>Patrón</th><th>Tipo</th><th class="num">Windup</th><th class="num">Daño</th><th>Qué hace</th></tr></thead>
+      <tbody>
+        {Object.entries(m.boss.patterns).map(([p, v]) => (
+          <tr><td><b>{patternName(p)}</b></td><td>{kinds[v.kind]}</td><td class="num">{v.windup} s</td><td class="num">×{v.mult}</td><td><small>{details(v)}{v.within ? ` · solo a menos de ${v.within} px` : ''}</small></td></tr>
+        ))}
+      </tbody>
+    </table>
+  )}
+  {m.boss && <p class="traits">Enfurecido por debajo del {Math.round(m.boss.enrage.at * 100)} % de vida: windups ×{m.boss.enrage.windup}, enfriamiento ×{m.boss.enrage.cd} y los anillos disparan su cuenta de furia. Botín: {m.boss.loot.drops} objetos con +{Math.round(m.boss.loot.bonus * 100)} % de rareza{m.boss.loot.min ? ', el último raro o mejor' : ''}{m.boss.mon ? ` · ×${m.boss.mon} de mon` : ''}.</p>}
+  <p class="traits">Dónde: {where.map((w) => `${mapName(w.map)}${w.role ? ` (${roleName(w.role)})` : w.n > 1 ? ` ×${w.n}` : ''} · nivel ${w.lvl}`).join(' · ')}</p>
+</section>

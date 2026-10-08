@@ -1,0 +1,76 @@
+---
+title: Combate, movimiento y muerte
+description: El paso determinista, la esquiva perfecta, el daño, los telegraphs, la regeneración y cómo se cae y se revive.
+sidebar: { order: 2, label: 'Combate y movimiento' }
+---
+import Patron from '../../../components/Patron.astro';
+import Sprite from '../../../components/Sprite.astro';
+import { game, world } from '../../../lib/shared.ts';
+
+<Patron kami="hachiman" section="clases" />
+
+## Movimiento
+
+| Constante | Valor |
+|---|---|
+| Velocidad | {world.SPEED} px/s (las diagonales se normalizan) |
+| Esquiva: velocidad / duración / enfriamiento | {world.DASH_SPEED} px/s · {world.DASH_TIME} s · {world.DASH_CD} s |
+| Hitbox de pies | {world.HALF_W * 2}×{world.HALF_H * 2} px alrededor de (x, y) |
+| Paso fijo de simulación | 1/60 s; el servidor procesa como máximo 6 pasos por tick de {world.TICK_MS} ms |
+| Tick del servidor | {1000 / world.TICK_MS} Hz |
+
+**La esquiva perfecta.** Eres invulnerable desde que empieza la esquiva hasta `DASH_TIME + 0.1` = **{(world.DASH_TIME + 0.1).toFixed(2)} s**. Recibir un golpe en ese margen no te daña (los proyectiles te atraviesan) y te da ***Kensei*: +{Math.round((game.KENSEI.atk - 1) * 100)} % de ataque durante {game.KENSEI.t} s** (el sprite parpadea en azul).
+
+<Sprite key="tex:slash" scale={1} caption="El arco del tajo" />
+<Sprite key="tex:spark" scale={4} caption="La chispa del impacto" />
+<Sprite key="tex:circle" scale={1} caption="El círculo de aviso" />
+
+:::note[El mismo paso en los dos lados]
+`shared/world.ts › step()` es **determinista** y corre idéntico en el cliente (que predice) y en el servidor (que manda), con el mismo paso fijo de 1/60 s. Nada de aleatoriedad, `Date.now()` ni dependencias del frame dentro. Una prueba comprueba que la predicción coincide exactamente con el servidor.
+:::
+
+## Daño
+
+- **Que haces:** <code>atk · mult · U(0.9, 1.1) · {game.DEF_SCALE}/({game.DEF_SCALE} + defensa del objetivo)</code>. Un crítico multiplica ×{game.CRIT_MULT}. Mínimo 1.
+- **Que recibes:** lo mismo con tu defensa. Con *Kekkai* activo, ×{game.KEKKAI.guard}; con *Shiko*, ×{game.SHIKO.guard}.
+- **Defensa:** divide el daño por <code>({game.DEF_SCALE} + def) / {game.DEF_SCALE}</code>. Con 60 de defensa recibes la mitad.
+- **Caída por distancia** (flechas y ofuda, incluidas la Lluvia y la salpicadura): daño completo hasta {game.RANGED_FALLOFF.near} px recorridos, después lineal hasta ×{game.RANGED_FALLOFF.min} al alcance máximo del proyectil. Así el arco y la miko tienen que acercarse.
+
+**Topes de stats:** celeridad {Math.round(game.STAT_CAP.haste * 100)} %, robo de vida {Math.round(game.STAT_CAP.leech * 100)} % y crítico {Math.round(game.STAT_CAP.crit * 100)} %. El de robo de vida es el peor caso de un set legendario (5 % × 3 piezas): sin él, los afijos cuarto y quinto más los Extras dejaban curarse más de lo que el jefe pega.
+
+## La IA de los monstruos
+
+Una máquina de estados de seis estados:
+
+1. **`idle`** · cada 2–5 s elige un punto a 8–24 px de su origen y camina hasta él. Si no hay ningún jugador a ≤320 px no deambula: en un mapa grande, lo que nadie ve no se mueve ni genera parches de estado.
+2. **`chase`** · persigue con separación suave de otros mobs a < 12 px (no se apilan). Si su objetivo cae, muere o se va, se vuelve hacia el jugador en pie más cercano antes de rendirse.
+3. **`windup`** · se detiene, parpadea en rojo y muestra su telegraph.
+4. **Ataque** · melee en un arco de `alcance + 8`, o un proyectil.
+5. **`recover`** · espera `cd · 0.6`.
+6. **`return`** · vuelve a ×1,6 de velocidad curándose un 50 %/s, **inmune** (así no se le hace yo-yo a distancia), y llega con la vida completa y 2 s de calma.
+
+**Correa de un jefe de campo** (`givesUp`): dentro de su correa pelea libremente; pasada, **sigue peleando mientras le peguen** y vuelve a casa cuando lleva {game.LEASH_CALM} s sin recibir daño allí, o en cuanto pasa de ×{game.LEASH_HARD} su correa. Una pelea en el borde ya no lo reinicia y nadie lo arrastra por el mapa.
+
+## Los tres tipos de patrón de jefe
+
+| Tipo | Qué hace | Parámetros |
+|---|---|---|
+| `arc` | Zarpazo cuerpo a cuerpo en abanico (semiángulo π = 360°, sin hueco a la espalda) | `reach`, `half` |
+| `dash` | Salto en línea recta; golpea una vez a cada jugador que toque | `speed`, `time`, `hitR` |
+| `ring` | Anillo de proyectiles alrededor | `n`, `nEnraged`, `speed`, `life`, `proj` |
+| `rain` | Marca un círculo bajo cada jugador y golpea todos al acabar el windup (mundo 3) | `n`, `r`, `spread`, `proj` |
+| `summon` | Llama a los suyos, nunca más de `max` vivos: adds sin botín ni XP real (mundo 3) | `mob`, `n`, `max` |
+
+Todos llevan `windup`, `mult` y, opcional, `within`: si el jefe lo elige a más distancia, se acerca en vez de atacar. **Todos están telegrafiados**, y el cliente dibuja el aviso con los mismos números con los que el servidor golpea.
+
+## Regeneración y muerte
+
+| Dónde | Regeneración |
+|---|---|
+| Zona segura | 15 % de la vida máxima por segundo |
+| Campo | 2 %/s tras 6 s sin recibir daño |
+| Arena de un jefe principal | Ninguna |
+
+**En el campo:** si una miko viva de tu party está a ≤{game.REVIVE.call} px, quedas `downed` {game.REVIVE.down} s y puede revivirte. Si no, pasas a `dead` y a los 3 s reapareces en el spawn del mapa con la vida completa. **No pierdes nada**, salvo {10} puntos de salud en cada pieza equipada.
+
+**En la arena:** quedas `downed` {game.REVIVE.down} s si tu party tiene una miko en pie; si no la hay o no te revive a tiempo, pasas a `dead` (fantasma) hasta el final de la pelea. La única miko de una party nunca puede ser revivida.

@@ -1,0 +1,17 @@
+---
+// The section's patron at the top of a page: its kami, a line of lore, and the pixel glyph its headings wear (src/art/glyphs.ts).
+import Kami from './Kami.astro';
+import { KAMI } from '../art/kami.ts';
+import { GLYPHS } from '../art/glyphs.ts';
+import { gridUrl } from '../lib/svg.ts';
+interface Props { kami: string; section: string }
+const { kami, section } = Astro.props;
+const k = KAMI[kami], g = GLYPHS[section];
+if (!k || !g) throw new Error(`Patron: «${kami}» / «${section}»`);
+const glyph = gridUrl(g);
+---
+<aside class="patron ema" style={`--glyph:${glyph}`}>
+  <Kami id={kami} size={4} />
+  <div><b>{k.name}</b><span>{k.line}</span></div>
+</aside>
+<script is:inline define:vars={{ glyph }}>document.documentElement.style.setProperty('--glyph-h2', glyph);</script>

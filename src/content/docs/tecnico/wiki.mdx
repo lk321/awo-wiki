@@ -1,0 +1,63 @@
+---
+title: Esta wiki
+description: Cómo está hecha, cómo se corre, cómo se regeneran las capturas y por qué no copia ni un número.
+sidebar: { order: 6, label: 'Esta wiki' }
+---
+import Patron from '../../../components/Patron.astro';
+
+<Patron kami="onmyoji" section="tecnico" />
+
+La wiki vive en **`awo-ki/`**, al lado del repositorio del juego, y **no entra en sus workspaces ni en su typecheck**: `npm run check` y `npm run verify` del juego siguen exactamente igual. Dentro de ella rigen las mismas reglas: 500 líneas y una responsabilidad por archivo, identificadores en inglés y comentarios solo del porqué.
+
+## No copia nada
+
+Importa `shared/` y `client/src/art/` **por ruta relativa**, sin alias ni copias:
+
+- Las **tablas** (mobs, jefes, armas, skins, rarezas, títulos, objetivos, mapas, botín) se construyen en la compilación llamando a las mismas funciones que el juego: `mobHp`, `bossEdge`, `zoneDrops`, `mainStats`, `lootOdds`, `goalReward`, `perkValue`.
+- Los **nombres** salen del catálogo de textos del juego.
+- El **arte** se pinta en el navegador con los mismos pintores: `pen()`, los registros de hojas, `renderMap`, los retratos, los iconos.
+
+Si el código cambia, la wiki cambia. Si algo deja de existir, la compilación falla.
+
+## Las texturas de Phaser
+
+Algunos pintores (el torii, los props, las piezas de los servicios, las armas en mano, los proyectiles) se registran en el gestor de texturas de Phaser. **No se exportan a PNG ni se levanta un Phaser headless:** la wiki le pasa a `makeTextures()` un objeto con los dos únicos métodos que usa (`exists` y `addCanvas`, que devuelve un `add` para los frames) y se queda con los canvases. Son **menos de 30 líneas**, no hay motor que arrancar, y una textura nueva en el juego aparece sola en el Artboard.
+
+En la compilación no hay DOM, así que un shim mínimo da `document.createElement('canvas')` sobre un canvas de Node: lo justo para que el verificador de referencias y los recuentos del Artboard corran en la compilación y no solo en el navegador.
+
+## Los comandos
+
+```bash
+cd awo-ki
+npm install
+npm run dev     # la wiki en :4321
+npm run shots   # las capturas, con el juego en marcha
+npm run build   # verifica las referencias y compila a dist/
+npm run check   # sus pruebas, el verificador y el typecheck
+```
+
+## El verificador de referencias
+
+`npm run build` empieza recorriendo todas las páginas y comprobando que **cada** clave de sprite, mapa, servicio, icono, base de objeto, kami y captura **existe**. Un sprite renombrado en el juego rompe la compilación de la wiki en lugar de dejar un hueco silencioso en una página.
+
+## Las capturas
+
+`npm run shots` conduce el **juego real** con Playwright: coloca la cuenta de prueba donde hace falta a través de su propio documento de jugador (como hace el script de siembra del juego), inicia sesión, pulsa las teclas y guarda el PNG. Necesita el juego en marcha, MongoDB y la cuenta sembrada; si falta algo lo dice con un mensaje claro en vez de agotar un tiempo de espera.
+
+Deja un informe en `public/shots/index.json` con lo que logró y lo que no. **Una captura que no se puede hacer se reporta, nunca se omite en silencio.**
+
+```bash
+npm run shots                 # todas
+npm run shots -- bag stall    # solo esas
+```
+
+## La dirección de arte
+
+La wiki es **una estela en un santuario**. Usa las paletas del juego, no inventa ninguna: el bermellón del torii, el negro lacado, la piedra, el oro y la paleta de sus iconos. De día el fondo es papel *washi* con grano de píxel; de noche, laca negra con vetas. Los títulos y los menús van en `DotGothic16`; el cuerpo, en una fuente legible.
+
+- La **cabecera** lleva el torii del juego, dibujado en vivo, con su shimenawa y sus shide.
+- El **buscador** es un chōchin; el **botón de tema**, un sol y una luna de píxeles.
+- La **barra lateral** son las tablillas de un tablón de santuario, cada sección con el emblema de su **kami patrón**.
+- Las **tarjetas** son placas *ema* con las esquinas recortadas; los **avisos**, ofuda con el Seiman; los **separadores**, shimenawa.
+- Los **marcos de rareza** son los del juego, no una imitación: la wiki carga su propia hoja de estilos de rareza.
+- Los emblemas de kami pasan **la misma prueba** que los iconos del juego: 16×16, solo colores de su paleta, contorno de 1 px.

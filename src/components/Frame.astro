@@ -1,0 +1,19 @@
+---
+// An item cell with the game's rarity frame (frames.ts + rarity.css): divine and mythic corners, the extras' pips, a masterwork's sparkle.
+import { game } from '../lib/shared.ts';
+import { itemName, rarityName } from '../lib/names.ts';
+interface Props { base: string; rarity?: number; extras?: number; plus?: number; ilvl?: number; maxed?: boolean; caption?: string }
+const { base, rarity = 0, extras = 0, plus = 0, ilvl = 1, maxed = false, caption } = Astro.props;
+if (!(base in game.BASES)) throw new Error(`Frame: base desconocida «${base}»`);
+const r = game.RARITY[rarity];
+---
+<awo-cell class="itemcell" base={base}>
+  <div class:list={['cell', `r-${r}`, { maxed }]} style={`border-color:${game.RARITY_COLOR[rarity]}`}>
+    <img class="ico" alt="" />
+    {extras > 0 && <i class="pips" style={`--n:${extras}`}></i>}
+    <small>{ilvl}</small>
+    {plus > 0 && <b>+{plus}</b>}
+  </div>
+  <em class={`rn-${r}`} style={`color:${game.RARITY_COLOR[rarity]}`}>{caption ?? `${itemName(base)} · ${rarityName(rarity)}`}</em>
+</awo-cell>
+<script>import '../lib/elements/cell.ts';</script>

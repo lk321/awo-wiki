@@ -1,0 +1,14 @@
+---
+// A village service as the scene composes it (its pieces over its block, its yard), animated with the NPC's own frames.
+import { SERVICES } from '../lib/services.ts';
+interface Props { service: string; scale?: number; caption?: string }
+const { service, scale = 3, caption } = Astro.props;
+const s = SERVICES.find((x) => x.id === service);
+if (!s) throw new Error(`Service: servicio desconocido «${service}»`);
+---
+<awo-service class="sprite service" service={service} scale={scale}>
+  <div class="art"></div>
+  <small class="tag"><b>{caption ?? service}</b><span>bloque {s.char} {s.size[0]}×{s.size[1]}{s.frames > 1 ? ` · ${s.frames} frames` : ''}</span></small>
+  {s.frames > 1 && <button type="button" class="play" data-play="▶ animar" data-stop="■ parar">▶ animar</button>}
+</awo-service>
+<script>import '../lib/elements/service.ts';</script>

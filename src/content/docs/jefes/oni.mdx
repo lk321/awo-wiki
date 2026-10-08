@@ -1,0 +1,60 @@
+---
+title: El Oni del Santuario
+description: "El jefe principal del valle: su arena, sus fases, sus veinte generaciones y lo que aprende de tus peleas."
+sidebar: { order: 1, label: 'Oni del Santuario' }
+---
+import Patron from '../../../components/Patron.astro';
+import Sprite from '../../../components/Sprite.astro';
+import MapView from '../../../components/MapView.astro';
+import MainBoss from '../../../components/tables/MainBoss.astro';
+import { mains, profile } from '../../../lib/shared.ts';
+
+<Patron kami="raijin" section="jefes" />
+
+<Sprite key="oni" scale={3} caption="Oni del Santuario (56×60)" />
+
+El **gancho del juego**. Cada jugador tiene el suyo: su generación, su perfil aprendido, su historial y sus peleas viven en un documento propio (`bossMem._id = '<jugador>:oni'`). En party se pelea **el del líder**, y al vencer la generación de cada miembro presente sube a la que acaban de vencer + 1.
+
+## Su arena
+
+<MapView map="shrine" legend={true} />
+
+Se entra por la puerta `S` del norte del bosque, bajo el torii. **Solo el líder la abre**; los compañeros a 120 px entran con él y se pelea **un equipo a la vez** por líder (el *lease* vive en su propia memoria del Oni, así que dos parties distintas pueden pelear a la vez contra sus respectivos Onis).
+
+<Sprite key="tex:torii" scale={2} caption="El torii de la puerta" />
+<Sprite key="tex:seal" scale={3} caption="Un sello, apagado" />
+<Sprite key="tex:seal-lit" scale={3} caption="El mismo sello, encendido" />
+<Sprite key="tex:circle" scale={1} caption="El círculo de invocación" />
+
+## Sus números por generación
+
+<MainBoss id="oni" />
+
+## Sus fases
+
+| Fase | Cuándo | Qué cambia |
+|---|---|---|
+| **1** | De salida | Tajos, abanico de fuego, golpe de tierra, invocación, embestida y teletransporte, con los pesos que ha aprendido |
+| **2** | Bajo su umbral aprendido ({profile.DEFAULT_PROFILE.phase2Threshold * 100} % por defecto, entre 30 y 70 %) | **Se escuda**: inmune, sin robo de vida. Los jugadores lo derriban **golpeando los dos sellos a la vez** (queda aturdido 4 s y recibe ×1.5). Vuelve a escudarse a los 22 s |
+| **3** · Furia | G{15}+, bajo el {profile.PHASE3_AT * 100} % de vida | Ataque ×{profile.RAGE.atk}, +{profile.RAGE.def} de armadura, velocidad ×{profile.RAGE.speed} y ataques más seguidos (tempo ×{profile.RAGE.tempo}) |
+
+## Sus poderes por generación
+
+| Generación | Qué desbloquea |
+|---|---|
+| G{profile.EVADE.from} | **Esquiva disparos**, cada vez mejor ({Math.round(profile.EVADE.perGen * 100)} % por generación, tope {Math.round(profile.EVADE.max * 100)} %) |
+| G10 | **Medita** para curarse: {Math.round(profile.MEDITATION.heal * 100)} % de su vida en {profile.MEDITATION.channel} s, por debajo del {Math.round(profile.MEDITATION.below * 100)} %; se interrumpe si recibe el {Math.round(profile.MEDITATION.breakAt * 100)} % de su vida de golpe |
+| G15 | **Fase 3**: la Furia |
+| G{profile.SUMMON.from} | **Llama a los jefes de su zona** en su ayuda (nivel {profile.SUMMON.lvl}) |
+| G{mains.MAIN.oni.blast ?? profile.DEATH_BLAST.from} | **Estalla al morir**: {profile.DEATH_BLAST.r} px de radio tras {profile.DEATH_BLAST.t} s. Un wipe por su explosión **sí lo entrena**: lo venciste aunque no sobrevivieras |
+| G{profile.GEN_MAX} | **Caza a las mikos** (×{profile.HUNTER.dmg} de daño contra ellas) y **{2} guardianes** protegen sus sellos. Vencido aquí, tu Oni se queda en G{profile.GEN_MAX} para siempre y sigue aprendiendo |
+
+## Lo que se lleva el vencedor
+
+Dos objetos, el segundo siempre raro o mejor y con más bonus; su nivel de fuente sube con la generación (hasta {mains.MAIN.oni.loot.top}) y su nivel de objeto sale de `DROP_ILVL.main<code>. Además XP, mon, el título temporal **Héroe del santuario** (72 h) y, en G{profile.GEN_MAX}, el contador </code>oniFinal`, que abre el tope de nivel 30 y el mundo 2.
+
+El **MVP** de la party tira sus dos drops con las rarezas ×{1.25}: ver [el MVP](/progresion/mvp/).
+
+## Y aprende
+
+Cada vez que cae, un modelo de lenguaje pequeño repasa **tus** peleas desde su caída anterior y ajusta su estilo. El sistema entero, con su frontera de confianza, está en [cómo aprenden los jefes](/jefes/aprendizaje/).

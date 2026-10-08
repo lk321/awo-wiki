@@ -1,0 +1,53 @@
+---
+title: La Serpiente Milenaria
+description: "El jefe principal de las montañas: su cuerpo de once secciones, su vuelo en fase 2 y sus veinte generaciones."
+sidebar: { order: 2, label: 'Serpiente Milenaria' }
+---
+import Patron from '../../../components/Patron.astro';
+import Sprite from '../../../components/Sprite.astro';
+import MapView from '../../../components/MapView.astro';
+import MainBoss from '../../../components/tables/MainBoss.astro';
+import { mains, profile } from '../../../lib/shared.ts';
+import { RYU_BODY } from '../../../lib/art.ts';
+
+<Patron kami="raijin" section="jefes" />
+
+<Sprite key="ryu" scale={2} caption="Su cabeza (52×32)" />
+<Sprite key="ryu-seg" scale={2} caption="Una sección del cuerpo" />
+<Sprite key="ryu-tail" scale={2} caption="La cola" />
+
+Cabeza con astas, barbas, crin blanca y bigotes; un cuerpo de **{RYU_BODY.sections} secciones** de escamas de jade con vientre dorado y cresta roja que siguen la trayectoria de la cabeza, ondulan y se estrechan hacia la cola. Se dibuja a ×{RYU_BODY.scale}: un coloso al lado de un héroe de 26 px.
+
+## Su arena
+
+<MapView map="lair" legend={true} />
+
+<Sprite key="tex:otorii" scale={2} caption="El ōtorii que la abre (132×90)" />
+
+La Guarida tiene lava a lo largo de las paredes, cuatro columnas de roca, ruinas de un santuario más antiguo, cristales y ceniza que cae: **3,5 veces** el santuario del Oni, porque necesita sitio para volar, embestir y barrer.
+
+## Sus números por generación
+
+<MainBoss id="ryu" />
+
+## Sus fases
+
+| Fase | Qué cambia |
+|---|---|
+| **1** | Zarpazos, aliento de fuego, rugido ancestral y embestida |
+| **2** (bajo su umbral aprendido) | **Alza el vuelo**: inmune en el aire y **sin robo de vida**. Se derriba golpeando **los dos sellos a la vez** (4 s aturdida, daño ×1.5); vuelve a volar a los 22 s. Aparecen la lluvia de rocas y el picado, el fuego se hace más ancho y sube el tempo |
+| **3** · Furia del Dragón (G15+, bajo el {profile.PHASE3_AT * 100} %) | Más daño, más armadura, más rápida y ataques más seguidos |
+
+Es el mismo sistema de fases del Oni con otra piel: en vez de un escudo, **el vuelo**.
+
+## Lo que cambia respecto al Oni
+
+- **Estalla una generación antes**: desde G{mains.MAIN.ryu.blast}, no G{profile.DEATH_BLAST.from}.
+- Su hueco de invocación **no trae adds**: ahí tiene un ataque propio (la lluvia de rocas). Lo que llama en G{profile.SUMMON.from}+ son los **jefes de las montañas**.
+- Sus sellos en G{profile.GEN_MAX} los guardan **guerreros de piedra**.
+- Dos de sus ataques son **solo de fase 2** (la lluvia de rocas y el picado).
+- Su victoria en G{profile.GEN_MAX} abre el tope **50** y el mundo 3, y deja a los vencedores en Hanazono.
+
+## Aprende aparte del Oni
+
+Su memoria por jugador (`bossMem._id = '<jugador>:ryu'`), su log de peleas (`fights.boss = 'ryu'`), su canal de perfil y su *lock* del learner son **suyos**: el Oni no aprende nada de una pelea contra ella, ni al revés. Su prompt empieza «Eres la mente táctica de la Serpiente Milenaria…», con sus seis ataques descritos. El sistema es el mismo: [cómo aprenden los jefes](/jefes/aprendizaje/).

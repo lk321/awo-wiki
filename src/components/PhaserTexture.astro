@@ -1,0 +1,8 @@
+---
+// A texture the game registers on Phaser's TextureManager (torii, props, services, weapons, projectiles), painted by the same
+// makeTextures() into a stand-in store (lib/texStore.ts): no Phaser, no PNG export. Keys are checked by scripts/check-refs.ts.
+import Sprite from './Sprite.astro';
+interface Props { key: string; scale?: number; caption?: string; label?: boolean }
+const { key, scale = 3, caption, label = true } = Astro.props;
+---
+<Sprite key={`tex:${key}`} scale={scale} caption={caption ?? key} label={label} />

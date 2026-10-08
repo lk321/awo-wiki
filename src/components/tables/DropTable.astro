@@ -1,0 +1,38 @@
+---
+// The zone's loot table for a player of `lvl`, straight from zones.ts › zoneDrops (the same function the M panel uses in game).
+import { world, zones, game } from '../../lib/shared.ts';
+import { mobName, rarityName } from '../../lib/names.ts';
+interface Props { map: string; lvl?: number }
+const { map, lvl } = Astro.props;
+const def = world.MAPS[map], at = lvl ?? def.lvl?.[0] ?? 1;
+const rows = zones.zoneDrops(def, at);
+const main = def.bosses?.main ? zones.mainDrops(def.bosses.main, 1, at) : undefined;
+const pct = (p: number) => (p <= 0 ? '—' : p < 0.001 ? `${(p * 100).toFixed(4)} %` : `${(p * 100).toFixed(p < 0.01 ? 3 : 2)} %`);
+const show = [1, 2, 3, 4, 5].filter((r) => [...rows, ...(main ? [main] : [])].some((x) => x.odds[r] > 0));
+---
+<table class="data">
+  <thead><tr><th>Fuente</th><th class="num">Nv.</th><th class="num">Objetos</th><th class="num">Prob. de drop</th>{show.map((r) => <th class="num"><span class={`r-${game.RARITY[r]}`}>{rarityName(r)}</span></th>)}<th class="num">XP</th></tr></thead>
+  <tbody>
+    {rows.map((d) => (
+      <tr>
+        <td>{mobName(d.kind)}</td>
+        <td class="num">{d.lvl}</td>
+        <td class="num">{d.drops}{d.min ? '*' : ''}</td>
+        <td class="num">{pct(d.chance)}</td>
+        {show.map((r) => <td class="num">{pct(d.odds[r])}</td>)}
+        <td class="num">{d.xp.toLocaleString('es')}</td>
+      </tr>
+    ))}
+    {main && (
+      <tr>
+        <td><b>{mobName(main.kind)}</b> (G1)</td>
+        <td class="num">{main.lvl}</td>
+        <td class="num">{main.drops}*</td>
+        <td class="num">100 %</td>
+        {show.map((r) => <td class="num">{pct(main.odds[r])}</td>)}
+        <td class="num">{main.xp.toLocaleString('es')}</td>
+      </tr>
+    )}
+  </tbody>
+</table>
+<p class="hint">Calculado para un jugador de <b>nivel {at}</b>, solo y sin título, con las mismas funciones que el panel M (<code>zoneDrops</code>, <code>mainDrops</code>). Las cifras bajan a medida que subes de nivel: primero el bonus de riesgo, luego la caída por nivel. * el último drop es raro o mejor.</p>

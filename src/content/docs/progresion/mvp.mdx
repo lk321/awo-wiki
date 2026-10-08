@@ -1,0 +1,30 @@
+---
+title: El MVP y el resumen de victoria
+description: Cómo se mide lo que hizo cada uno en cuatro ejes, qué gana el MVP y por qué la duración de la pelea no influye.
+sidebar: { order: 4, label: 'El MVP' }
+---
+import Patron from '../../../components/Patron.astro';
+import { mvp } from '../../../lib/shared.ts';
+
+<Patron kami="fujin" section="progresion" />
+
+Al caer un jefe principal, cada vencedor ve un **resumen** (no modal, Esc lo cierra) con lo que hizo la party y quién fue el **MVP**, con su animación.
+
+## Cuatro ejes
+
+Lo que hizo cada uno se mide como **su parte de lo que hizo la party** en cuatro ejes, no en cifras absolutas: así una pelea larga y una corta puntúan igual.
+
+| Eje | Qué cuenta |
+|---|---|
+| Daño | Lo que le hizo al jefe |
+| Curación | Lo que curó a la party |
+| Aguante | El daño que recibió y sostuvo |
+| Apoyo | Revivir, provocar, escudar |
+
+El reparto tiene un **suelo de relevancia**: un eje que casi nadie tocó no decide la partida. Hay un **mínimo de party** ({mvp.MVP_MIN} miembros) por debajo del cual no se elige MVP: con dos jugadores, nombrar a uno es ruido.
+
+## Su premio
+
+El MVP tira sus **dos drops con las rarezas ×{mvp.MVP_DROP}**, en **todas** las rarezas. No es un drop extra ni una tabla aparte: es la misma tirada con un multiplicador, así que un mítico sigue siendo igual de raro en proporción.
+
+`shared/mvp.test.ts` comprueba la carrera de daño, la pelea de curación, el rikishi que sostiene, la invariancia a la duración, el suelo de relevancia, las caídas, el mínimo de party, los empates y las peleas vacías sin NaN.

@@ -1,0 +1,23 @@
+---
+// A whole map of MAPS rendered live (ground, props and services), with zoom and a legend read from its MapDef.
+import { world } from '../lib/shared.ts';
+import { mapName } from '../lib/names.ts';
+interface Props { map: string; legend?: boolean; caption?: string }
+const { map, legend = false, caption } = Astro.props;
+const def = world.MAPS[map];
+if (!def) throw new Error(`MapView: mapa desconocido «${map}»`);
+const w = def.rows[0].length, h = def.rows.length;
+---
+<awo-map class="map ema" map={map} legend={legend ? 'on' : 'off'}>
+  <header>
+    <b>{caption ?? mapName(map)}</b>
+    <span>{w}×{h} tiles · {w * world.TILE}×{h * world.TILE} px</span>
+    <nav>
+      <button type="button" data-zoom="1" class="on">×1</button>
+      <button type="button" data-zoom="2">×2</button>
+      <button type="button" data-legend class:list={[{ on: legend }]}>leyenda</button>
+    </nav>
+  </header>
+  <div class="scroll"><p class="wait">pintando el mapa…</p></div>
+</awo-map>
+<script>import '../lib/elements/map.ts';</script>

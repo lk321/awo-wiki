@@ -1,0 +1,83 @@
+---
+title: Los cuatro héroes
+description: "Rōnin, cazador, miko y rikishi: su hoja, su retrato, su arma, su habilidad y su definitiva."
+sidebar: { order: 1, label: 'Los cuatro héroes' }
+---
+import Patron from '../../../components/Patron.astro';
+import Sprite from '../../../components/Sprite.astro';
+import ClassTable from '../../../components/tables/ClassTable.astro';
+import { game } from '../../../lib/shared.ts';
+import { className, itemName, skillName } from '../../../lib/names.ts';
+
+<Patron kami="hachiman" section="clases" />
+
+**No hay clases: el arma equipada define el rol.** El personaje se elige al crear la cuenta y después se cambia equipando en el juego un arma de otro estilo (panel I); el puesto vende las cuatro de inicio. Iniciar sesión ya no lo cambia.
+
+<div class="board">
+  <Sprite key="hero:katana" scale={3} caption="Rōnin · katana" />
+  <Sprite key="hero:yumi" scale={3} caption="Cazador · yumi" />
+  <Sprite key="hero:ofuda" scale={3} caption="Miko · ofuda" />
+  <Sprite key="hero:tsuchi" scale={3} caption="Rikishi · tsuchi" />
+</div>
+
+Cada hoja son **15 frames**: tres direcciones (abajo, de lado, arriba) por cinco frames (quieto y cuatro de andar). El de lado se refleja para ir a la izquierda.
+
+<div class="board board-sm">
+  <Sprite key="portrait:katana" scale={4} caption="Rōnin" />
+  <Sprite key="portrait:yumi" scale={4} caption="Cazador" />
+  <Sprite key="portrait:ofuda" scale={4} caption="Miko" />
+  <Sprite key="portrait:tsuchi" scale={4} caption="Rikishi" />
+</div>
+
+<ClassTable />
+
+## Stats base por nivel
+
+| Stat | Fórmula |
+|---|---|
+| Vida máxima | `100 + 14·(nivel − 1)` |
+| Ataque | `10 + 2.5·(nivel − 1)` |
+| Defensa | `4 + (nivel − 1)` |
+| Crítico | 5 % |
+
+**El rikishi es el tanque** (`CLASS`, aplicado **después** del equipo, así que también multiplica lo que da el equipo): vida ×{game.CLASS.tsuchi?.hp}, defensa ×{game.CLASS.tsuchi?.def}, ataque ×{game.CLASS.tsuchi?.atk} y velocidad ×{game.CLASS.tsuchi?.speed} (su esquiva también tarda ×{game.CLASS.tsuchi?.dash} más en volver). A nivel 10 con buen equipo: unos 481 de vida y 39 de defensa frente a 332 y 26 de un rōnin, con un 40 % del daño de la katana.
+
+## Las armas, una a una
+
+### {className('katana')} · katana
+
+Combo de tres tajos con multiplicadores **{game.MOVES.katana.combo.join(' / ')}**, ventana de combo 0,7 s, arco de radio <code>{game.MOVES.katana.reach} + tamaño</code> y semiángulo {game.MOVES.katana.half} rad. Empuja a los mobs 6 px (16 con el tercer golpe); los jefes no se mueven. Tras el tercer golpe el enfriamiento sube a {game.KATANA_FINISHER_CD} s.
+
+**{skillName('katana')}** ({game.WEAPON_CD.katana[1]} s): embestida de {game.MOVES.katana.lunge} px con i-frames que daña ×**{game.MOVES.katana.iaido}** a todo lo que quede cerca de la línea.
+
+**Mikazuki** (R, {game.ULT_CD.katana} s): embestida de {game.ULT_MOVES.katana.lunge} px con i-frames y tajo final en arco de radio <code>{game.ULT_MOVES.katana.reach} + tamaño</code>; lo que atraviesa **o** queda en el arco recibe ×**{game.ULT_MOVES.katana.mult}** una sola vez.
+
+### {className('yumi')} · yumi
+
+Flecha a {game.MOVES.yumi.speed} px/s, vida {game.MOVES.yumi.life} s (unos {Math.round(game.MOVES.yumi.speed * game.MOVES.yumi.life)} px), multiplicador **{game.MOVES.yumi.mult}**, **atraviesa a {game.MOVES.yumi.pierce} enemigo**.
+
+**{skillName('yumi')}** ({game.WEAPON_CD.yumi[1]} s): {game.MOVES.yumi.volley} flechas en abanico separadas {game.MOVES.yumi.spread} rad, ×{game.MOVES.yumi.volleyMult} cada una.
+
+**Senbon-ya** (R, {game.ULT_CD.yumi} s): **{game.ULT_MOVES.yumi.n} flechas** caen {game.ULT_MOVES.yumi.delay} s después sobre un abanico delante (tres filas a {game.ULT_MOVES.yumi.rows.join('/')} px, ±{game.ULT_MOVES.yumi.spread} rad); cada una golpea a <code>{game.ULT_MOVES.yumi.r} + tamaño</code> px por ×{game.ULT_MOVES.yumi.mult}, **como mucho {game.ULT_MOVES.yumi.cap} por objetivo**. Sin ese tope, un jefe grande a quemarropa se comería las doce.
+
+### {className('ofuda')} · ofuda
+
+Talismán a {game.MOVES.ofuda.speed} px/s, vida {game.MOVES.ofuda.life} s, multiplicador {game.MOVES.ofuda.mult}. **Estalla al impactar**: los demás objetivos a ≤ <code>{game.MOVES.ofuda.aoe} + tamaño</code> px reciben ×{game.MOVES.ofuda.splash}. La salpicadura **no roba vida**.
+
+**{skillName('ofuda')}** ({game.WEAPON_CD.ofuda[1]} s): **una sola curación** de <code>{Math.round(game.KEKKAI.hp * 100)} % de su vida máxima + {game.KEKKAI.atk}·ataque</code> repartida **a partes iguales** entre ella y los compañeros de party a ≤{game.KEKKAI.range} px; su propia parte cuenta la mitad. Es sanadora de party, no tanque en solitario. A todos les da barrera: daño recibido ×{game.KEKKAI.guard} durante {game.KEKKAI.guardT} s.
+
+**Shimenawa** (R, {game.ULT_CD.ofuda} s): estallido a <code>{game.ULT_MOVES.ofuda.r} + tamaño</code> px por ×{game.ULT_MOVES.ofuda.mult} y un Kekkai mayor (la misma curación ×{game.ULT_MOVES.ofuda.heal}, escudo {game.ULT_MOVES.ofuda.guardT} s).
+
+**Solo la miko revive.** Un compañero de su party caído (`downed`), a ≤{game.REVIVE.range} px: mantiene **E** sin moverse {game.REVIVE.channel} s y se levanta con el {Math.round(game.REVIVE.hp * 100)} % de la vida. Sin límite ni enfriamiento. Moverse, esquivar o atacar cancela el canal y pierde el progreso; recibir daño no.
+
+### {className('tsuchi')} · tsuchi
+
+Barrido de mazo: arco ancho de radio <code>{game.TSUCHI.reach} + tamaño</code> y semiángulo {game.TSUCHI.half} rad, ×{game.TSUCHI.mult} a **todo** lo que haya dentro, empujándolo {game.TSUCHI.push} px.
+
+**{skillName('tsuchi')}** ({game.WEAPON_CD.tsuchi[1]} s): el pisotón del sumo golpea alrededor (radio <code>{game.SHIKO.r} + tamaño</code>, ×{game.SHIKO.mult}), **provoca** a todo mob y jefe a ≤{game.SHIKO.taunt} px (al jefe principal, {game.SHIKO.tauntT} s) y le escuda: daño recibido ×{game.SHIKO.guard} durante {game.SHIKO.guardT} s.
+
+**Yokozuna** (R, {game.ULT_CD.tsuchi} s): pisotón a <code>{game.ULT_MOVES.tsuchi.r} + tamaño</code> px por ×{game.ULT_MOVES.tsuchi.mult}, provoca a ≤{game.ULT_MOVES.tsuchi.taunt} px, escuda {game.ULT_MOVES.tsuchi.guardT} s y, **encima, +{Math.round(game.ULT_MOVES.tsuchi.def * 100)} % de su propia defensa durante {game.ULT_MOVES.tsuchi.defT} s**. Los dos se acumulan: es la ventana de aggro del tanque, no una postura.
+
+## La definitiva
+
+Se desbloquea a **nivel 30**, el tope del valle tras vencer al Oni en G20. Por debajo, R no hace nada (el HUD la muestra en gris con candado). Su enfriamiento es 2,5–3× el de la habilidad y la celeridad lo acorta igual. Daño y curación ×`1 + 0.15·(nivel − 1)`, hasta ×1,6 en el nivel 5.

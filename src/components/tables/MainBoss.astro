@@ -1,0 +1,44 @@
+---
+// A main boss's numbers: its base, what each generation does to it (bossScaling), its six tactic slots with its own moves,
+// and what a winner takes home. Everything from mainBosses.ts and bossProfile.ts, so a tuning change shows up here.
+import { mains, profile, game } from '../../lib/shared.ts';
+import { mainName, mainPattern } from '../../lib/names.ts';
+interface Props { id: string; gens?: number[] }
+const { id, gens = [1, 5, 10, 15, 18, 20] } = Astro.props;
+const d = mains.MAIN[id as mains.MainId];
+if (!d) throw new Error(`MainBoss: jefe desconocido «${id}»`);
+const rows = gens.map((g) => {
+  const s = mains.mainStats(id as mains.MainId, g, false), loot = mains.mainLoot(id as mains.MainId, g);
+  return { g, hp: s.hp, atk: Math.round(s.atk), def: s.def, crit: Math.round(s.crit * 100), leech: Math.round(s.leech * 100),
+    evade: Math.round(profile.evadeOdds(g) * 100), xp: mains.mainXp(id as mains.MainId, g), mon: mains.mainMon(id as mains.MainId, g),
+    src: loot[0].lvl, floor: Math.round(profile.weightFloor(g) * 100), resist: Math.round(profile.resistBudget(g) * 100) };
+});
+---
+<table class="data">
+  <thead><tr><th class="num">Gen.</th><th class="num">Vida</th><th class="num">Ataque</th><th class="num">Def.</th><th class="num">Crítico</th><th class="num">Robo</th><th class="num">Esquiva</th><th class="num">Suelo de pesos</th><th class="num">Resistencia total</th><th class="num">Nv. de su botín</th><th class="num">XP</th><th class="num">Mon</th></tr></thead>
+  <tbody>
+    {rows.map((r) => (
+      <tr>
+        <td class="num"><b>G{r.g}</b></td><td class="num">{r.hp.toLocaleString('es')}</td><td class="num">{r.atk}</td><td class="num">{r.def}</td>
+        <td class="num">{r.crit} %</td><td class="num">{r.leech} %</td><td class="num">{r.evade} %</td><td class="num">{r.floor} %</td>
+        <td class="num">{r.resist} %</td><td class="num">{r.src}</td><td class="num">{r.xp.toLocaleString('es')}</td><td class="num">{r.mon.toLocaleString('es')}</td>
+      </tr>
+    ))}
+  </tbody>
+</table>
+<p class="hint">Vida en solitario (cada miembro extra de la party suma +{Math.round(d.base.perMember * 100)} %). La <b>esquiva</b> es la probabilidad de que evada un disparo (desde G{profile.EVADE.from}); el <b>suelo de pesos</b> es cuánto ensancha su arsenal la generación (<code>effectiveWeights</code>), y la <b>resistencia total</b>, el techo que puede acumular entre todas (<code>resistBudget</code>). XP y mon, por vencedor.</p>
+
+<table class="data">
+  <thead><tr><th>Hueco táctico</th><th>Su ataque</th><th>Qué hace</th><th class="num">Peso inicial</th></tr></thead>
+  <tbody>
+    {profile.PATTERNS.map((p) => (
+      <tr>
+        <td><code>{p}</code></td>
+        <td><b>{mainPattern(id, p)}</b>{d.late.includes(p) && <> <small>· solo fase 2+</small></>}</td>
+        <td><small>{d.moves[p]}</small></td>
+        <td class="num">{d.profile.patternWeights[p]}</td>
+      </tr>
+    ))}
+  </tbody>
+</table>
+<p class="hint">Los seis huecos llevan los nombres del Oni, el primer jefe principal: son <b>papeles</b> (cerca, cono a media distancia, área alrededor, presión a la retaguardia, alcanzar al lejano, castigar la retaguardia) y cada jefe los llena con su propio ataque. Mantener los ids evita migrar los perfiles ya aprendidos. {mainName(id)} invoca <b>{d.add ? game.MOBS[d.add]?.name : 'nada'}</b> en su hueco de invocación{d.add ? '' : ': ahí tiene un ataque propio'}, y sus sellos los guardan <b>{game.MOBS[d.guard].name}</b> en G{profile.GEN_MAX}.</p>
