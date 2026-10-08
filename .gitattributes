@@ -1,0 +1,2 @@
+# Las capturas del juego son binarios: nada de normalizar saltos de línea en ellas.
+*.png binary

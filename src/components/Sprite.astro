@@ -1,0 +1,24 @@
+---
+// A live sprite of the game (island: paints in the browser with the game's own painters when it scrolls into view).
+// key: a SHEETS kind, hero:<weapon>, skin:<base>, portrait:<look>, icon:<name>, item:<base> or tex:<texture>. Unknown keys fail the build.
+import { SHEETS, LOOKS, SKIN_ART, ICONS, SPR } from '../lib/art.ts';
+import { game } from '../lib/shared.ts';
+
+interface Props { key: string; scale?: number; caption?: string; label?: boolean; play?: boolean; single?: boolean }
+const { key, scale = 3, caption, label = true, play = true, single = false } = Astro.props;
+const [kind, name] = key.includes(':') ? key.split(':', 2) : ['sheet', key];
+const known: Record<string, (n: string) => boolean> = {
+  sheet: (n) => n in SHEETS, hero: (n) => n in LOOKS, skin: (n) => n in SKIN_ART, portrait: (n) => n in LOOKS || n in SKIN_ART,
+  icon: (n) => n in ICONS, item: (n) => n in game.BASES, tex: () => true, // textures are checked by scripts/check-refs.ts (they need a canvas)
+};
+if (!known[kind]?.(name)) throw new Error(`Sprite: clave desconocida «${key}»`);
+const s = kind === 'sheet' ? SHEETS[name] : undefined;
+const geom = s ? `${s.fw}×${s.fh} · ${s.n ?? 4} frames` : kind === 'hero' || kind === 'skin' ? `${SPR.hero.fw}×${SPR.hero.fh} · 15 frames` : kind === 'portrait' ? `${SPR.hero.fw}×${SPR.hero.fh}` : kind === 'icon' || kind === 'item' ? '16×16' : '';
+const frames = s ? (s.n ?? 4) : kind === 'hero' || kind === 'skin' ? 15 : kind === 'tex' ? 2 : 1;
+---
+<awo-sprite class="sprite" key={key} scale={scale} single={single ? '' : undefined} style={`--k:${scale}`}>
+  <div class="art" aria-label={caption ?? key}></div>
+  {label && <small class="tag"><b>{caption ?? key}</b>{geom && <span>{geom}</span>}</small>}
+  {play && frames > 1 && <button type="button" class="play" data-play="▶ animar" data-stop="■ parar">▶ animar</button>}
+</awo-sprite>
+<script>import '../lib/elements/sprite.ts';</script>

@@ -1,0 +1,49 @@
+---
+title: Verificación
+description: Qué comprueba cada comando, qué se prueba a mano y qué deja un check cada cambio.
+sidebar: { order: 4, label: 'Verificación' }
+---
+import Patron from '../../../components/Patron.astro';
+
+<Patron kami="onmyoji" section="tecnico" />
+
+```bash
+npm run check    # typecheck + tests unitarios + reglas del repo (~5 s; es el hook pre-push)
+npm run verify   # check + build del cliente + TODAS las e2e en servidores aislados + presupuesto de tick (~5 min; es el CI)
+```
+
+`verify` levanta **sus propios servidores aislados** (otro puerto, otra base de datos, otro Redis), así que no ensucia la base de desarrollo ni choca con el servidor en marcha.
+
+## Lo que se comprueba
+
+| Prueba | Qué garantiza |
+|---|---|
+| Reglas del repo | Ningún archivo pasa de **500 líneas** |
+| Iconos | Cada icono de la interfaz es 16×16, solo con colores de su paleta, con contorno, y ningún color de la paleta queda sin usar |
+| Caminos | Ningún mapa tiene esquinas mordidas, agujeros ni caminos sobre el agua; los bordes transitables son solo las salidas |
+| Servicios | El arte y el suelo de cada servicio no pisan caminos, agua ni props vecinos |
+| Objetos | La regla de rareza en **cada base, cada par de rarezas, cada stat y cada mundo**; los Extras y su inmutabilidad; la fusión solo en el techo |
+| Equilibrio | El techo de poder del equipo contra cada jefe principal (el mundo 2 real, el 3 con sus números reales, el 4 proyectado) |
+| Zonas | Los topes de nivel, el botín por nivel, el ritmo de 30 a 50 y que **ningún jefe sea un salto de nivel** |
+| MVP | La invariancia a la duración, el suelo de relevancia, los empates y las peleas vacías sin NaN |
+| Habilidades | Los enfriamientos frente a la habilidad, los precios, y que la definitiva al máximo supere a la habilidad |
+| Antispam | El ritmo del chat, las ráfagas y la línea repetida (y que reintentar una petición nunca se silencie) |
+| Predicción | Que la predicción del cliente coincide **exactamente** con el servidor |
+| Presupuesto de tick | 50 jugadores en el bosque: media ≤ 5 ms, máximo ≤ 40 ms |
+
+Aparte de `verify`, `npm run load` mete **dos oleadas de 1 050 jugadores** en el clúster y exige que la segunda no lo deje un 30 % más pesado: es la prueba de fugas de memoria. Va fuera de `verify` a propósito, porque mil clientes bot cuestan tanta CPU como los servidores que miden.
+
+## La regla
+
+**Cada cambio no trivial deja un check ejecutable**, sea un `assert` en las pruebas compartidas o un script en el servidor añadido a `verify`.
+
+Lo que **no** cubre ninguna prueba automática es el cliente: si tocas la escena, hay que probarlo en el navegador.
+
+## La wiki
+
+```bash
+cd wiki && npm run check   # sus tests, el verificador de referencias y el typecheck
+cd wiki && npm run build   # verifica las referencias y compila
+```
+
+El verificador de referencias recorre todas las páginas y falla si una clave de sprite, un mapa, un icono, una base de objeto o una captura **no existe**: un sprite renombrado en el juego rompe la compilación de la wiki en vez de dejar un hueco silencioso.

@@ -1,0 +1,78 @@
+---
+title: Skins y la costurera
+description: "Los tres juegos de skins de Itohime, su bonus aleatorio permanente y la receta de su telar."
+sidebar: { order: 3, label: 'Skins' }
+---
+import Patron from '../../../components/Patron.astro';
+import Sprite from '../../../components/Sprite.astro';
+import Service from '../../../components/Service.astro';
+import SkinTable from '../../../components/tables/SkinTable.astro';
+import { economy, game, skins, zones } from '../../../lib/shared.ts';
+import { itemName, rarityName } from '../../../lib/names.ts';
+
+export const bases = Object.keys(game.BASES).filter((b) => game.BASES[b].slot === 'skin');
+export const ofSet = (n) => bases.filter((b) => game.BASES[b].set === n);
+
+<Patron kami="amaterasu" section="objetos" />
+
+Una **skin** es un aspecto nuevo para tu clase, cosido por **Itohime, la costurera**, a partir de tres piezas de tu bolsa. Cambia el sprite, el arma en mano y añade un aura dorada. Además da un **bonus pequeño, aleatorio y permanente**. Hay **{bases.length}**, una por clase y juego, en **{skins.SKIN_SETS.length} juegos**.
+
+<Service service="seamstress" scale={3} caption="El telar de Itohime" />
+
+Cose desde las aldeas del **mundo {zones.SEAMSTRESS_WORLD}**; en Kiri no hay telar. El juego de los dioses, solo desde el mundo {zones.SKIN_SET_WORLD[3]}.
+
+## Juego 1 · negro y plata
+
+Velocidad y precisión. <b class="r-legendary">{rarityName(skins.SKIN_SET[1].rarity)}</b>.
+
+<div class="board">
+  {ofSet(1).map((b) => <Sprite key={`skin:${b}`} scale={3} caption={itemName(b)} />)}
+</div>
+
+## Juego 2 · guinda y oro
+
+Vida. <b class="r-legendary">{rarityName(skins.SKIN_SET[2].rarity)}</b>.
+
+<div class="board">
+  {ofSet(2).map((b) => <Sprite key={`skin:${b}`} scale={3} caption={itemName(b)} />)}
+</div>
+
+## Juego 3 · los dioses
+
+Los dos pools, rangos más anchos y hasta **{skins.maxLines(3)} líneas**. <b class="r-mythic">{rarityName(skins.SKIN_SET[3].rarity)}</b>, nivel {game.BASES[ofSet(3)[0]].wearLvl} para coserla y para llevarla, y **nunca cambia de manos**: se liga a quien la cosió.
+
+<div class="board">
+  {ofSet(3).map((b) => <Sprite key={`skin:${b}`} scale={3} caption={itemName(b)} />)}
+</div>
+
+## El catálogo
+
+<SkinTable />
+
+Sus armas en mano, recoloreadas con el mismo agarre y el mismo tamaño que las de su clase (solo la nodachi y la ōdachi son 6 px más largas que la katana, como esas hojas de verdad):
+
+<div class="board board-sm">
+  {bases.map((b) => <Sprite key={`tex:w-${b}`} scale={4} caption={itemName(b)} />)}
+</div>
+
+## El bonus
+
+Lo tira el servidor **una sola vez, al coserla**, y ya no cambia nunca salvo con un [fragmento Kintsugi](/objetos/divino-mitico/#el-fragmento-kintsugi). Es **absoluto**: no escala con el nivel de objeto ni con mejoras. La skin **no se mejora, no sube de nivel, no se fusiona y no se desgasta** al morir.
+
+**Solo cuenta con un arma de su clase.** Si cambias a otra, la skin sigue puesta pero queda **inactiva**: ni bonus ni aspecto. Vuelve sola al ponerte otra vez un arma suya. Suma antes del multiplicador de clase (el rikishi multiplica su vida ×{game.CLASS.tsuchi?.hp}, como con todo su equipo) y respeta los topes de stats.
+
+Las pruebas de equilibrio visten al mejor equipo posible con la mejor skin de cada juego y siguen cumpliendo todos sus techos: el mejor set mata como mucho **1,75 veces** más rápido que uno de la rareza anterior.
+
+## La receta del telar
+
+- Las piezas salen de la **bolsa**, nunca de lo equipado. Su `+N` da igual y se usan primero las de menos nivel y luego las de menos `+N`.
+- La rareza tiene que ser **exactamente** la que pide el juego: ni por encima ni por debajo.
+- **Cada intento** cuesta **{economy.SKIN_CRAFT_FEE.toLocaleString('es')} mon** y sale bien el **{Math.round(economy.SKIN_CRAFT_CHANCE * 100)} %** de las veces. **Se gastan las piezas y el mon siempre**, salga o no: el coste esperado es de cinco intentos.
+
+El servidor lo comprueba todo **antes de cobrar**: que estés vivo y a ≤40 px del telar, que la id sea una base de skin que ese telar cose, que estén las tres piezas y que tengas la cuota. Solo entonces cobra, quita las piezas y tira el {Math.round(economy.SKIN_CRAFT_CHANCE * 100)} %. Si sale bien, la skin entra en la bolsa **firmada con tu nombre y la fecha**, y esa firma no cambia nunca.
+
+## Llevarla
+
+Tiene su **slot propio**, la cuarta celda del panel I (arma · armadura · amuleto · skin). Equipar exige un arma de su clase puesta. Se guarda en el almacén y **nunca la compra el puesto**; los juegos 1 y 2 se comercian y van al mercado, el de los dioses no.
+
+**Lo que ven los demás:** el estado sincronizado lleva la base de la skin cuando corresponde al arma puesta, y el cliente dibuja su hoja y su arma en lugar de las de la clase, con un **aura dorada** que respira bajo el jugador y una chispa cada 0,65 s. Muerto, ni aura ni chispas.

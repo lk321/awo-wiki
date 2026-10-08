@@ -1,0 +1,13 @@
+---
+// The header: the game's torii (with its shimenawa) in front of the title, drawn live at ×1.
+import type { Props } from '@astrojs/starlight/props';
+import KamiVars from './KamiVars.astro';
+const { locale } = Astro.props as Props;
+const home = locale ? `/${locale}/` : '/';
+---
+<KamiVars />
+<a href={home} class="site-title" aria-label="Amazing World Online">
+  <awo-torii scale="1" aria-hidden="true"></awo-torii>
+  <span class="title"><small>霧の里</small>Amazing World <b>Online</b><em>wiki</em></span>
+</a>
+<script>import '../../lib/elements/torii.ts';</script>

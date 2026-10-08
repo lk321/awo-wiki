@@ -1,0 +1,102 @@
+---
+title: Mundo 2 · Montañas Orientales
+description: Takane, las seis regiones de la montaña, las Profundidades en party y la Guarida de la Serpiente Milenaria.
+sidebar: { order: 2, label: 'Montañas Orientales' }
+---
+import Patron from '../../../components/Patron.astro';
+import MapView from '../../../components/MapView.astro';
+import Sprite from '../../../components/Sprite.astro';
+import Service from '../../../components/Service.astro';
+import MobTable from '../../../components/tables/MobTable.astro';
+import ZoneBosses from '../../../components/tables/ZoneBosses.astro';
+import DropTable from '../../../components/tables/DropTable.astro';
+import TitleTable from '../../../components/tables/TitleTable.astro';
+import { mapIntro, mapSub } from '../../../lib/names.ts';
+import { kindsOf, mobsOf, servicesOf, sizeOf } from '../../../lib/maps.ts';
+import { world } from '../../../lib/shared.ts';
+
+<Patron kami="inari" section="mundos" />
+
+El segundo nivel de mundo: **niveles 15–25** en el campo abierto, **25–29** en la mazmorra y jefes de 22 a 32. Se entra venciendo al **Oni en G20**, que abre el tope de nivel 30 y deja a sus vencedores en Takane. El tope de objeto sube a **20**, y aquí empieza a caer el **Divino**.
+
+## Aldea de Takane
+
+<p>{mapSub('takane')} · {sizeOf('takane').w}×{sizeOf('takane').h} tiles · zona {world.MAPS.takane.lvl?.join('–')}</p>
+
+{mapIntro('takane')}
+
+<MapView map="takane" legend={true} />
+
+Tres terrazas colgadas de la montaña, unidas por escaleras de piedra. Arriba el templo, la curandera y la forja; en medio el telar, la estela y el puesto; abajo el mirador y el onmyōji. **Es la primera aldea con costurera**: aquí empiezan las [skins](/objetos/skins/).
+
+<div class="board">
+  {servicesOf('takane').map((s) => <Service service={s.id} scale={2} />)}
+</div>
+
+## Montañas Orientales
+
+<p>{mapSub('yama')} · {sizeOf('yama').w}×{sizeOf('yama').h} tiles = {sizeOf('yama').tiles.toLocaleString('es')} tiles · nivel {world.MAPS.yama.lvl?.join('–')}</p>
+
+{mapIntro('yama')}
+
+<MapView map="yama" legend={true} />
+
+Seis regiones alrededor de una red de caminos de dos de ancho:
+
+| Región | Dónde | Nivel | Qué hay |
+|---|---|---|---|
+| Sendero de la montaña | Oeste | 15–17 | Yamazoku en grupos junto al camino, Saru. El peaje con su élite |
+| Bosque de bambú | Noroeste | 16–20 | Take-no-sei, Hebi, Saru; claros entre bambú denso |
+| Acantilados | Noreste | 16–21 | Karasu-tengu aéreos, cornisas, cascada, puentes. El **Ōinoshishi** |
+| Santuario antiguo | Centro | 18–25 | Komainu, Ishi-musha; losas rotas, hokora. El **Niō** en el patio sur |
+| Cuevas | Suroeste | 17–23 | Roca y cristales; la **boca de la cueva** de las profundidades |
+| Corazón de la montaña | Sureste | 21–25 | Lava, ceniza, huesos antiguos, el **Daidarabotchi** y el gran torii del dragón |
+
+### Sus monstruos
+
+<MobTable kinds={mobsOf('yama').mobs.map((m) => m.kind)} map="yama" />
+
+### Sus élites
+
+Un élite es una variante rara de un mob normal: **×2.5 de vida, ×1.35 de daño, +2 niveles**, una habilidad de jefe más, botín seguro con +20 % de rareza y 90 s de reaparición. Se dibuja con la hoja de su base a ×1.25 con aura dorada.
+
+<MobTable kinds={mobsOf('yama').elites.map((m) => m.kind)} map="yama" role={true} />
+
+### Sus jefes
+
+<ZoneBosses map="yama" />
+
+### Botín de la zona
+
+<DropTable map="yama" />
+
+## Profundidades de la Montaña
+
+<p>{mapSub('fukami')} · {sizeOf('fukami').w}×{sizeOf('fukami').h} tiles · nivel {world.MAPS.fukami.lvl?.join('–')} · party de {world.MAPS.fukami.party}+</p>
+
+{mapIntro('fukami')}
+
+<MapView map="fukami" legend={true} />
+
+Siete salas por el sendero de una expedición antigua, de la cueva natural al núcleo de magma. La mazmorra sube **+{world.MAPS.fukami.deep?.boost} niveles** a sus mobs, les da detección ×{world.MAPS.fukami.deep?.aggro}, persecución ×{world.MAPS.fukami.deep?.leash} y llamada a la manada a {world.MAPS.fukami.deep?.call} px, y paga **+{Math.round((world.MAPS.fukami.deep?.xp ?? 0) * 100)} % de XP** y **+{Math.round((world.MAPS.fukami.deep?.loot ?? 0) * 100)} % de probabilidad de drop**.
+
+<MobTable kinds={kindsOf('fukami')} map="fukami" role={true} />
+
+<DropTable map="fukami" lvl={27} />
+
+## Guarida de la Serpiente
+
+<p>{mapSub('lair')} · {sizeOf('lair').w}×{sizeOf('lair').h} tiles</p>
+
+<MapView map="lair" legend={true} />
+
+<Sprite key="ryu" scale={2} caption="La cabeza de la Serpiente Milenaria" />
+<Sprite key="ryu-seg" scale={2} caption="Una de sus once secciones" />
+<Sprite key="ryu-tail" scale={2} caption="Su cola de crin" />
+<Sprite key="tex:otorii" scale={2} caption="El ōtorii que abre la guarida (132×90)" />
+
+Se entra por el **gran torii** al final del camino del corazón: un *ryōbu* como el de Itsukushima, con dos pilares a cinco casillas y sus *hikae-bashira*. Todo sobre ella en [la Serpiente Milenaria](/jefes/serpiente/).
+
+## Títulos del mundo 2
+
+<TitleTable world={2} />

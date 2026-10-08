@@ -1,0 +1,23 @@
+---
+// The home's hero: the login backdrop with its petals, the four heroes walking, the hook of the Oni and two doors.
+import Backdrop from '../Backdrop.astro';
+import Sprite from '../Sprite.astro';
+import { game } from '../../lib/shared.ts';
+import { className } from '../../lib/names.ts';
+const weapons = Object.keys(game.STARTER);
+---
+<section class="hero-shrine">
+  <Backdrop />
+  <div class="hero-plate">
+    <small>霧の里 · 高嶺の里 · 花園の里</small>
+    <h1>Amazing World <b>Online</b></h1>
+    <p>Un MMORPG 2D en pixel art en el Japón rural. En el santuario te espera <b>tu propio Oni</b>: cada vez que cae, aprende de tus peleas y renace más fuerte, con mejor botín.</p>
+    <nav>
+      <a class="door" href="/mundos/valle/">Entrar al valle</a>
+      <a class="door alt" href="/arte/artboard/">Ver el Artboard</a>
+    </nav>
+  </div>
+  <ul class="hero-row" aria-label="Los cuatro héroes">
+    {weapons.map((w) => <li><Sprite key={`hero:${w}`} scale={3} caption={className(w)} play={true} single={true} /></li>)}
+  </ul>
+</section>

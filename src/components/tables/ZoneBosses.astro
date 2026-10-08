@@ -1,0 +1,35 @@
+---
+// A map's bosses by role (MapDef.bosses): each one with its sprite, level, numbers, respawn and, for a crowd boss, what wakes it.
+import Sprite from '../Sprite.astro';
+import { game, world, zones } from '../../lib/shared.ts';
+import { sheetOf } from '../../lib/maps.ts';
+import { mobName, roleName } from '../../lib/names.ts';
+interface Props { map: string }
+const { map } = Astro.props;
+const def = world.MAPS[map], b = def.bosses ?? {};
+const roles = (['sub', 'field', 'roam', 'crowd'] as const).filter((r) => b[r]).map((r) => {
+  const kind = b[r]!, m = game.MOBS[kind], lvl = zones.lvlIn(def, kind), e = game.bossEdge(lvl);
+  const place = { sub: 'en su marcador', field: 'en su marcador', roam: `en uno de los ${world.markers(world.grid(map), 'R').length} puntos R, al azar`, crowd: `en su marcador Y, con ${zones.crowdMin(def)} jugadores de nivel ${zones.crowdLvl(def)}+` }[r];
+  return { r, kind, m, lvl, hp: game.mobHp(m, lvl), atk: Math.round(game.mobAtk(m, lvl)), def: game.mobDef(m, lvl), e, place };
+});
+---
+<table class="data">
+  <thead><tr><th>Sprite</th><th>Papel</th><th>Jefe</th><th class="num">Nv.</th><th class="num">Vida</th><th class="num">Ataque</th><th class="num">Def.</th><th class="num">Drops</th><th class="num">Reaparece</th><th>Dónde</th></tr></thead>
+  <tbody>
+    {roles.map((x) => (
+      <tr>
+        <td><Sprite key={sheetOf(x.kind)} scale={2} label={false} single={true} /></td>
+        <td>{roleName(x.r)}</td>
+        <td><b>{mobName(x.kind)}</b><br /><small>crítico {Math.round(x.e.crit * 100)} % · robo {Math.round(x.e.leech * 100)} %</small></td>
+        <td class="num">{x.lvl}</td>
+        <td class="num">{x.hp.toLocaleString('es')}</td>
+        <td class="num">{x.atk}</td>
+        <td class="num">{x.def}</td>
+        <td class="num">{x.m.boss!.loot.drops}{x.m.boss!.loot.min ? '*' : ''}</td>
+        <td class="num">{x.m.boss!.respawn >= 60 ? `${Math.round(x.m.boss!.respawn / 60)} min` : `${x.m.boss!.respawn} s`}</td>
+        <td><small>{x.place}</small></td>
+      </tr>
+    ))}
+  </tbody>
+</table>
+<p class="hint">* su último drop es raro o mejor. Vida, ataque y defensa ya incluyen el bonus de jefe por nivel (<code>bossEdge</code>).</p>

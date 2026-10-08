@@ -1,0 +1,94 @@
+---
+title: Objetos y rarezas
+description: Las seis rarezas con sus marcos reales, la regla de rareza, los afijos, el desgaste y cada base del juego.
+sidebar: { order: 1, label: 'Objetos y rarezas' }
+---
+import Patron from '../../../components/Patron.astro';
+import Frame from '../../../components/Frame.astro';
+import BaseTable from '../../../components/tables/BaseTable.astro';
+import { game } from '../../../lib/shared.ts';
+import { rarityName, statName } from '../../../lib/names.ts';
+
+<Patron kami="amaterasu" section="objetos" />
+
+Seis rarezas, cada una con **un afijo más** que la anterior. Los marcos de abajo son los del juego (`client/src/art/frames.ts`), no una imitación.
+
+<div class="board">
+  {game.RARITY.map((_, r) => <Frame base="tachi" rarity={r} ilvl={10} plus={r >= 3 ? 9 : 0} extras={r >= 4 ? r - 3 : 0} maxed={r >= 3} />)}
+</div>
+
+<table class="data">
+  <thead><tr><th>Rareza</th><th class="num">Afijos</th><th class="num">Extras</th><th class="num">Nivel para equipar</th><th>Color</th><th class="num">Valor</th></tr></thead>
+  <tbody>
+    {game.RARITY.map((r, i) => (
+      <tr>
+        <td><b class={`r-${r}`}>{rarityName(i)}</b></td>
+        <td class="num">{i}</td>
+        <td class="num">{i >= game.EXTRAS.from ? '0–3' : '—'}</td>
+        <td class="num">{game.RARITY_LVL[i] || '—'}</td>
+        <td><code>{game.RARITY_COLOR[i]}</code></td>
+        <td class="num">×{[1, 3, 8, 25, 70, 200][i]}</td>
+      </tr>
+    ))}
+  </tbody>
+</table>
+
+## La regla de rareza
+
+Una pieza en **nivel de objeto 10 y +9** es exactamente un **{Math.round((game.RARITY_EDGE - 1) * 100)} %** mejor que la misma base de la rareza siguiente en nivel 1 y +0. Con un nivel y un +1 más, la de mayor rareza ya gana. **Nunca** hay otro caso en que una rareza menor supere a una mayor.
+
+Por eso cada rareza multiplica los stats base por <code>RARITY_STEP ≈ {game.RARITY_STEP.toFixed(2)}</code>:
+
+<code>base · RARITY_MULT[rareza] · {game.ITEM_GROWTH.ilvl}^(nivel − 1) · (1 + {game.ITEM_GROWTH.plus}·mejora)</code>
+
+El **Legendario es el ancla**: conserva los números de la tabla de bases en nivel 1. Cada rareza por debajo los divide entre {game.RARITY_STEP.toFixed(2)} y cada una por encima los multiplica:
+
+<table class="data">
+  <thead><tr><th>Rareza</th><th class="num">Multiplicador</th></tr></thead>
+  <tbody>{game.RARITY.map((r, i) => <tr><td><b class={`r-${r}`}>{rarityName(i)}</b></td><td class="num">×{game.RARITY_MULT[i].toFixed(2)}</td></tr>)}</tbody>
+</table>
+
+Como el nivel crece geométrico, la regla se cumple igual en cada franja de diez niveles de cada mundo. `shared/items.test.ts` lo comprueba en **cada base, cada par de rarezas seguidas, cada stat y cada mundo**, y también con un set completo puesto.
+
+## Las bases
+
+<BaseTable />
+
+**Nivel mínimo de la fuente** (`minLvl`): una base solo cae de un mob o jefe de ese nivel o más (un kodama nunca suelta un tachi) y el puesto solo la vende desde ese nivel de personaje. El nivel del objeto que cae va aparte.
+
+## Afijos
+
+Valores **absolutos**: no los multiplica el nivel de objeto, ni la mejora, ni la rareza. La rareza solo añade uno más por paso.
+
+| Afijo | Valor |
+|---|---|
+| {statName('atk')} | `2 + 3r + 0.5·nivel` |
+| {statName('hp')} | `8 + 12r + 3·nivel` |
+| {statName('crit')} | 2–5 % |
+| {statName('leech')} | 2–5 % |
+| {statName('haste')} | 5–12 % |
+
+## Desgaste
+
+La salud (`dur`) va de 0 a {game.MAX_DUR}. Una pieza desgastada da menos de **todo** (stats base y afijos), linealmente desde el 100 % intacta hasta ×{game.WEAR_FLOOR} justo antes de romperse; rota (0) no da nada. Cada muerte cuesta **{10} puntos** a cada pieza equipada. La skin y el fragmento Kintsugi no se desgastan. El herrero repara.
+
+Un arma rota **sigue definiendo tu estilo**: solo pega como si fueras con las manos.
+
+## Tirar objetos
+
+| Objeto | Clic derecho | Mayús + clic derecho |
+|---|---|---|
+| Común sin mejorar | se tira, sin preguntar | se tira |
+| Raro, épico y legendario | confirmación | se tira, sin preguntar |
+| **Divino, mítico, skins y cualquier cosa con +N** | confirmación | **confirmación igual**: Mayús nunca se los salta |
+
+Las skins entran ahí por lo que cuestan (3 000 mon y tres legendarios al 20 %) aunque su rareza sea legendaria, y el `+N` porque es mon pagado al herrero. Con el dedo no hay Mayús: mantener 500 ms se comporta como el clic derecho a secas.
+
+**Borrado automático:** marcas qué rarezas (hasta épico) se tiran solas en cuanto las recoges. Legendario, Divino y Mítico no se ofrecen.
+
+## El botín
+
+- **Loot personal:** cada miembro elegible recibe sus propias tiradas, enviadas solo a él. Se recoge a ≤14 px.
+- **La bolsa** admite {game.BAG_SIZE} objetos; el **almacén** de la aldea, {game.STORAGE_SIZE}.
+- **Caduca a los 30 s**, con la bolsa llena o no. Desde el segundo 20 el aura parpadea entre rojo y el color de su rareza.
+- **Legendario o mejor solo cae de jefes** (de campo, de multitud y principales): un mob normal o un élite, en cualquier mapa, llega a Épico como mucho.

@@ -1,0 +1,59 @@
+---
+title: Recetas
+description: Cómo añadir un mob, un objeto, un mapa, un patrón de jefe, un mensaje o un texto sin romper nada.
+sidebar: { order: 5, label: 'Recetas' }
+---
+import Patron from '../../../components/Patron.astro';
+
+<Patron kami="onmyoji" section="tecnico" />
+
+Todo lo estático del juego son **constantes en `shared/`**, no filas de una base de datos. Añadir contenido es escribir datos y, como mucho, un dibujo.
+
+## Un monstruo
+
+1. Su entrada en `shared/mobs/<mundo>.ts`: nivel, vida, ataque, velocidad, alcance, XP, aggro, windup y enfriamiento, más los rasgos que use (`ranged`, `fly`, `lurk`, `pack`, `heal`, `armor`, `wide`, `kite`, `skill`, `elite`).
+2. Su **hoja** en `client/src/art/<mundo>Mobs.ts`: tamaño del frame, la fila de sus pies, la escala de su sombra y su función de dibujo.
+3. Su **carácter** en el mapa (`MapDef.spawns`) y sus marcadores en las filas ASCII.
+4. Su **nombre** no hace falta: sale de su propia entrada.
+
+El registro de hojas, las texturas y la colocación son automáticos.
+
+## Un jefe de campo
+
+Lo mismo, más el campo `boss`: sus patrones (de los cinco tipos que el servidor conoce), las bandas de distancia con sus probabilidades, su furia, su correa, su reaparición, su botín y su contador de hazaña. **Ahí viven todos sus números**: el servidor solo ejecuta los tipos y el cliente telegrafía con los mismos valores. Después, su papel en `MapDef.bosses` (`sub`, `field`, `roam` o `crowd`).
+
+## Un objeto
+
+Su entrada en `BASES` (slot, arma, stats base de un legendario de nivel 1, nivel mínimo de la fuente), su **icono de 16×16** en `client/src/art/items.ts` y su nombre en los dos catálogos de textos. Entra solo en el botín, el puesto, el mercado y el comercio.
+
+## Un mapa
+
+Sus filas ASCII en `shared/maps/<mundo>.ts` y su `MapDef`: mundo, suelo, si es seguro, salidas, punto de reaparición, rango de nivel, la hazaña que pide, sus jefes, sus spawns, su `out` si es instanciado, su `party` si es una mazmorra y su `deep` si tiene ventaja. El suelo, los props y los servicios se pintan solos desde los caracteres.
+
+Luego pasa las pruebas de caminos (sin esquinas mordidas, sin agujeros, sin caminos sobre el agua, bordes transitables solo en las salidas) y la de servicios (que su arte no pise nada).
+
+## Un prop
+
+Su textura y **una línea** en la tabla `PROPS`: carácter del mapa → textura, dónde se coloca y la **y de sus pies**. Con eso se coloca y-sorted en cualquier mapa. En el canvas del mapa queda solo su sombra.
+
+## Una aldea
+
+Su mapa seguro con sus bloques de servicio, su onmyōji y su portal. El viaje entre aldeas sale solo de la lista de mapas seguros, ordenada por el nivel de su zona.
+
+## Un mensaje nuevo
+
+Su handler en `messages` de la sala, que es la **frontera de confianza**: valida ahí todo lo que llega. Si el cliente necesita datos al entrar, usa el patrón del handshake: el cliente pide al terminar de cablear y el servidor responde.
+
+## Un texto
+
+**Ningún texto visible va en el código.** Vive en `shared/locales/es.ts` (que define las claves) y `en.ts` (tipado contra él). El cliente traduce; el servidor **envía claves**, nunca texto. Un tema nuevo va en su propio archivo de catálogo y se esparce en los dos.
+
+## Un jefe principal
+
+Su entrada en `shared/mainBosses.ts`: mundo, arena, cuerpo, números base, botín, XP, mon, sus contadores, su título, qué invoca, qué guarda sus sellos, qué ataques reserva para la fase 2, sus **seis movimientos** descritos para el modelo y su voz. Más su hoja y los ataques en el servidor.
+
+**No toca nada del resto:** su documento, sus peleas, su canal y el *lock* de su aprendizaje son suyos. Los seis huecos tácticos mantienen los ids del Oni para no migrar los perfiles ya aprendidos.
+
+## Y siempre
+
+**Todo queda documentado en el mismo cambio**, y **cada cambio no trivial deja un check ejecutable**.

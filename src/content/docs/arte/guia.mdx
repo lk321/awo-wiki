@@ -1,0 +1,117 @@
+---
+title: La guía de arte
+description: "El listón de calidad de todo pixel art del juego: proporciones, profundidad, fidelidad cultural, luz y paletas."
+sidebar: { order: 1, label: 'La guía de arte' }
+---
+import Patron from '../../../components/Patron.astro';
+import Sprite from '../../../components/Sprite.astro';
+import Kami from '../../../components/Kami.astro';
+
+<Patron kami="torii" section="arte" />
+
+Todo el arte es **pixel art procedural**, sin assets. Esta guía fija el nivel que debe tener cualquier diseño nuevo o rediseñado. **La referencia es el torii**: se ve bonito, es fiel a su original japonés y se comporta como un objeto real del mundo, porque pasas *por debajo* de él y no *por encima*.
+
+<Sprite key="tex:torii" scale={3} caption="El torii (80×61): la referencia" />
+
+## 1. Proporciones reales, no aplastadas
+
+Un objeto alto **no cabe en un tile de 16 px**. El torii viejo era un pilar de 16 px y un travesaño plano: se veía aplastado. El nuevo mide 80×61, casi cuatro tiles de alto, sobre dos pilares sólidos separados tres tiles.
+
+**La colisión va en los pies; el dibujo sube.** Solo es sólido el tile de la base; todo lo que sobresale hacia arriba es dibujo y no bloquea.
+
+| Qué | Sprite | Respecto al héroe (26 px de alto) |
+|---|---|---|
+| Héroe, onmyōji | 20×26 (+8 del eboshi) | — |
+| Herrero · curandera · costurera | 32×46 · 28×41 · 34×42 | Personas: misma cabeza y altura que él |
+| Estela | 22×34 | Algo más alta |
+| Portal del onmyōji | 30×46 | El héroe cabe bajo el travesaño |
+| Puesto (yatai) | 48×44 | Tejado por encima de su cabeza, mostrador a la cintura |
+| Almacén (kura) | 34×46 | Un edificio pequeño: puerta de su altura |
+| Forja | 46×56 | Techo bien por encima |
+| Torii | 80×61 | Unos 2,3 héroes |
+
+Una persona nunca es más baja que el héroe ni el doble de alta; un mueble llega a su cintura o pecho; un edificio le saca al menos media altura. **Si algo no cabe a escala en su sitio, se busca otro sitio: no se encoge.**
+
+## 2. Profundidad: rodear y cruzar por debajo
+
+El canvas del mapa está **siempre debajo** de todo: lo que se pinta ahí es suelo. Si un objeto tiene altura y se puede rodear o cruzar, **no va en el canvas del mapa**: tiene su propia textura, una línea en la tabla `PROPS` que dice dónde está y **la y de sus pies** (su profundidad), y en el mapa solo queda su sombra. Las entidades usan la y de sus pies, así que el orden sale solo: si el jugador está más al norte, el objeto lo tapa y los travesaños le pasan por encima de la cabeza.
+
+<div class="board">
+  <Sprite key="tex:toro" scale={3} caption="Tōrō: el farol de piedra" />
+  <Sprite key="tex:takemon" scale={2} caption="La puerta del laberinto" />
+  <Sprite key="tex:cavemouth" scale={2} caption="La boca de la cueva" />
+  <Sprite key="tex:pagoda" scale={1} caption="La pagoda de cinco pisos" />
+</div>
+
+## 3. Fidelidad cultural: dibuja las piezas reales
+
+Antes de dibujar, **identifica las partes del objeto real** y dibuja cada una. El torii, estilo *myōjin*, tiene:
+
+| Parte | Cómo está dibujada |
+|---|---|
+| **Kasagi** (dintel superior) | Negro, con la curva *sori*: las puntas suben 4 px |
+| **Shimaki** (bajo el kasagi) | Franja roja de 2 px que sigue la misma curva |
+| **Gakuzuka** (placa central) | Marco dorado, fondo negro y kanji dorados |
+| **Nuki** (travesaño inferior) | Rojo, asoma 6 px por fuera de los pilares, con cuñas (*kusabi*) |
+| **Hashira** (pilares) | Rojos, con luz a la izquierda y sombra a la derecha |
+| **Kamaki** (mangas de la base) | Negras, con un brillo de 1 px arriba |
+| **Basa** | Piedra gris con brillo superior |
+
+Un objeto genérico («un arco rojo») se ve plano. Uno con sus piezas reales se ve vivo. Se hizo igual con el portal (torii de piedra con el Seiman, ofuda y shimenawa con shide), el onmyōji (*kariginu*, *eboshi*, *shikiban*), la forja (*hodo* de barro, *fuigo*, *kemuridashi*, shimenawa), la curandera (*furisode*, *maekazari*, *kagura suzu* con sus cinco cintas, espejo *shinkyō*, *sakaki*, *yagen*), la costurera (moño *shimada*, *tasuki*, *nuidai*, telas *shibori*, *itokake*, *haribako*) y las skins (*menpō*, *mikazuki*, *kasa*, *tengan*, *gohei*, la *tsuna* del *yokozuna*).
+
+## 4. Luz, color y contorno
+
+- **Luz desde arriba a la izquierda, siempre:** 1 px claro en el borde izquierdo y superior, 1–2 px oscuros a la derecha y abajo. Un volumen de un solo color se ve plano.
+- **Tres tonos por material**, como mínimo: luz, base y sombra.
+- **Contorno de 1 px** (`#160f14`) en todo sprite que va sobre el suelo.
+- **Curvas con fórmula, no a ojo:** un desplazamiento entero por columna (`round(a · k³)`), así queda simétrica y sin dientes de sierra.
+- **Píxeles enteros.** Nada de escalados fraccionarios en el dibujo final.
+
+Las paletas que se reutilizan antes de inventar un color:
+
+| Material | Luz | Base | Sombra |
+|---|---|---|---|
+| Rojo del torii | `#ef6a55` | `#d0392f` | `#9e2a24` |
+| Negro lacado | `#4a3a40` | `#1b1418` | — |
+| Piedra | `#8a857f` | `#6e6a66` | `#4c4844` |
+| Oro | — | `#e3c15a` | — |
+
+**Esta wiki usa exactamente esas**, y sus emblemas de kami pasan la misma prueba que los iconos del juego: 16×16, solo colores de su paleta y contorno de 1 px.
+
+<div class="board board-sm">
+  <Kami id="inari" size={3} title={true} />
+  <Kami id="susanoo" size={3} title={true} />
+  <Kami id="raijin" size={3} title={true} />
+  <Kami id="hachiman" size={3} title={true} />
+  <Kami id="amaterasu" size={3} title={true} />
+  <Kami id="ebisu" size={3} title={true} />
+  <Kami id="fujin" size={3} title={true} />
+  <Kami id="daikoku" size={3} title={true} />
+  <Kami id="torii" size={3} title={true} />
+  <Kami id="onmyoji" size={3} title={true} />
+</div>
+
+## 5. Variedad y suelo natural
+
+- **Variantes por posición, no al azar:** un prop con varias texturas elige con una función del lugar, así el mapa no se ve estampado y no cambia entre visitas ni entre jugadores.
+- **Ninguna orilla es una regla:** el agua usa un campo continuo difuminado y con ruido, así las esquinas se redondean y los bordes rectos se muerden. La colisión sigue siendo por tile: solo cambia la pintura.
+- **Profundidad sin escalones:** los valores por tile se interpolan entre centros antes de pintar.
+- **Ningún camino mordido**, y **los caminos tienen sentido**: un camino no corta el agua (si tiene que cruzarla, va por un puente, que se orienta solo) y no acaba en la hierba.
+
+## 6. Un NPC con su entorno
+
+Un NPC de servicio no es un muñeco suelto: es **una escena pequeña** que cuenta su oficio. Varias piezas y-sorted sobre su bloque, el NPC y su herramienta **en el mismo frame** cuando se tocan (el herrero y su yunque, para que el martillo caiga justo sobre la hoja), su **suelo propio** con borde orgánico, y **vida**: martillazos con chispas, campanas con destellos, una reverencia del mercader, un ofuda que suelta un shikigami.
+
+## La lista de comprobación
+
+- [ ] ¿Las proporciones son las del objeto real, comparadas con el héroe de 20×26?
+- [ ] ¿Su arte y su suelo quedan fuera de caminos, agua y props vecinos?
+- [ ] ¿La colisión está solo en la base y el dibujo sube libremente?
+- [ ] ¿Se puede rodear o cruzar? Entonces: textura, su línea en `PROPS` con la y de su base, y en el mapa solo su sombra.
+- [ ] ¿Tiene variantes elegidas por posición? ¿Sus bordes con el suelo son orgánicos?
+- [ ] ¿Están dibujadas las piezas reales del objeto japonés?
+- [ ] ¿Tiene luz arriba a la izquierda, al menos tres tonos por material y contorno de 1 px?
+- [ ] ¿Reutiliza las paletas existentes?
+- [ ] ¿Está colocado con sentido en el mapa, sobre el paso y enmarcado?
+- [ ] **Probado en el navegador:** caminar delante, detrás y a través.
+- [ ] Documentado.

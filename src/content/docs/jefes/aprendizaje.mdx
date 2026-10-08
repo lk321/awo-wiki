@@ -1,0 +1,75 @@
+---
+title: Cómo aprenden los jefes
+description: El bucle telemetría → SLM → perfil → utility AI, su menú cerrado, sus resistencias con evidencia y su frontera de confianza.
+sidebar: { order: 4, label: 'El aprendizaje' }
+---
+import Patron from '../../../components/Patron.astro';
+import { profile, mains } from '../../../lib/shared.ts';
+import { targetName } from '../../../lib/names.ts';
+
+<Patron kami="raijin" section="jefes" />
+
+**Un sistema, tres jefes.** El Oni, la Serpiente Milenaria y Hairyū usan exactamente el mismo aprendizaje, generaciones, resistencias y poderes. Lo que los distingue es solo dato: sus seis ataques, su voz, sus números base y sus recompensas.
+
+**Principio:** el modelo de lenguaje es el **estratega**, nunca el cerebro en tiempo real. Ollama tarda entre cientos de milisegundos y segundos, así que **jamás corre dentro del tick** de 20 Hz. La pelea la ejecuta una *utility AI* determinista con seis ataques hechos a mano que lee un perfil; el modelo solo ajusta ese perfil.
+
+## El bucle
+
+```
+fin de pelea (victoria o wipe; también si todos se van)
+  └─ DungeonRoom.endFight()
+       ├─ fights.insertOne(FightLog + boss + player)   telemetría de TODOS los intentos
+       ├─ bossMem[líder]: $push recent (y si ganan: $push history)
+       ├─ si ganan: bossMem[cada miembro] $max generation = min(gen + 1, G20)
+       └─ solo si el jefe cae: learn(id, owner)        ← fire-and-forget, nunca lanza
+            ├─ sus peleas desde su caída anterior (mín. 10, máx. 20)
+            ├─ digest(logs) → señales numéricas y categóricas, en español
+            ├─ POST /api/chat a Ollama (gemma4:e2b, JSON schema forzado)
+            ├─ sanitizeProfile(prev, raw, gate) → perfil seguro
+            └─ publica el perfil por su canal y la lección en el chat global
+```
+
+**Solo aprende cuando cae**, de cualquier generación. Un wipe no lo entrena, pero **se guarda** y lo lee en la siguiente caída: la mayor parte de la señal está en las peleas que el jefe ganó. Excepción: desde la generación en que estalla, un wipe causado por **su explosión** sí lo entrena, porque lo venciste aunque no sobrevivieras.
+
+## El perfil
+
+| Campo | Rango | Para qué |
+|---|---|---|
+| `patternWeights` (los {profile.PATTERNS.length} huecos) | 0.05–1 | Multiplica el score de cada ataque al elegir |
+| `targetPriority` | {profile.TARGETS.map((t) => targetName(t)).join(' · ')} | A quién persigue |
+| `aggression` | 0–1 | Velocidad de aproximación, pausa entre ataques, windups |
+| `phase2Threshold` | 0.3–0.7 | A qué porcentaje de vida se escuda o alza el vuelo |
+| `resist` ({profile.RESISTS.join(', ')}) | 0–{profile.RESIST.max} | Lo que resiste de cada fuente de daño |
+| `learned`, `taunt`, `farewell` | es + en, ≤100 / 80 / 80 caracteres | Lo que la estela, el banner y el chat muestran |
+
+## El menú es cerrado
+
+Con el primer formato, que pedía números, un modelo de 4B **copiaba el perfil actual tal cual**: 0 de 5 ejecuciones cambiaban nada. Por eso el modelo **solo elige direcciones** (`up` / `down` / `keep<code>) por perilla, y el servidor aplica el paso fijo: ±{profile.MAX_DELTA} en pesos y agresividad, ±0.1 en el umbral de fase 2 y ±{profile.RESIST.step} en cada resistencia. Repetir </code>up` satura en el límite, así que **ningún grupo de jugadores puede mover al jefe de golpe**.
+
+`sanitizeProfile()` es la frontera de confianza: cualquier campo inválido o ausente conserva el valor anterior, los textos se limpian de todo lo que no sea letra, número o puntuación, se cortan en la última palabra completa, y si quedan en menos de tres caracteres se conserva el anterior.
+
+:::caution[Nunca entran strings de jugadores]
+El taunt se difunde a todos, así que el prompt **jamás** lleva nombres ni chat: `digest()` solo emite señales numéricas y categóricas.
+:::
+
+## Las resistencias piden evidencia
+
+El jefe aprende a defenderse de lo que más le duele. Pero `gemma4:e2b` incumplía la regla: con un Oni derrotado solo por arqueros y mikos subió *katana* dos lecciones seguidas y bajó el *arco*, que hacía el 44 % del daño. Por eso hay un **gate** calculado con las mismas peleas que lee el modelo: un arma sin uso (< 10 % del daño) baja siempre, una fuerte (≥ 40 %) no puede bajar, y nada sube sin la señal que lo justifique. El modelo sigue decidiendo, dentro de lo permitido.
+
+Lo que de verdad resiste lo limita su generación: cada una como mucho `resistCap(gen)<code> = mín({Math.round(profile.RESIST.maxCap * 100)} %, {Math.round(profile.RESIST.cap * 100)} % + {Math.round(profile.RESIST.capPerGen * 1000) / 10} %·gen), y todas juntas </code>resistBudget(gen)` = mín({Math.round(profile.RESIST.maxBudget * 100)} %, {Math.round(profile.RESIST.budget * 100)} % + {Math.round(profile.RESIST.budgetPerGen * 1000) / 10} %·gen). Un G1 resiste como mucho un 13,5 % sumando todo.
+
+## Los pesos que aprende y los que usa
+
+El modelo puede llevar un ataque hasta 0.05, y llegó a dejarlos todos ahí salvo el abanico de fuego: el Oni solo lanzaba fuego, era predecible y una miko lo vencía sola. Por eso al elegir se usa un **suelo por generación**: `suelo + (1 − suelo)·peso`, con <code>suelo = mín({profile.WEIGHT_FLOOR.max}, {profile.WEIGHT_FLOOR.perGen}·(gen − 1))</code>. G1 juega con lo aprendido tal cual, G6 con todo ≥ 0.25 y G13+ con todo ≥ 0.6, siempre en el orden que aprendió. El perfil guardado y el prompt siguen con los pesos crudos: si el modelo viera los efectivos, solo pediría «down».
+
+## Hacerlo visible
+
+Si los jugadores no lo perciben, es como si no existiera:
+
+- El **taunt** generado, en el banner de intro de cada pelea.
+- Un **anuncio global** tras cada caída, cuando termina de aprender.
+- La **estela de la aldea**, con una pestaña por jefe de su zona: su fuerza en esta generación, sus poderes, sus resistencias aprendidas y en uso, su historial de lecciones con ▲/▼, las barras de pesos, su objetivo, su agresividad y sus héroes.
+
+## Si Ollama no está
+
+El juego funciona igual: `learnOnce` registra un aviso y conserva el perfil. El jefe simplemente no aprende.

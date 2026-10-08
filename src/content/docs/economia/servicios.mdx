@@ -1,0 +1,96 @@
+---
+title: Los servicios de la aldea
+description: Puesto, herrero, curandera, costurera, almacén, estela y onmyōji, cada uno con su arte vivo y sus precios.
+sidebar: { order: 1, label: 'Servicios de la aldea' }
+---
+import Patron from '../../../components/Patron.astro';
+import Service from '../../../components/Service.astro';
+import Sprite from '../../../components/Sprite.astro';
+import { economy, game, zones, world } from '../../../lib/shared.ts';
+import { mapName } from '../../../lib/names.ts';
+
+<Patron kami="ebisu" section="economia" />
+
+Cada servicio es un **bloque del mapa** con una composición fija de piezas encima, y-sorted: puedes pasar por detrás de la forja y el techo te tapa. **E** habla con el más cercano, y cada acción se sirve **solo en su propio puesto**.
+
+## El puesto del mercader <code>{zones.STATION.stall}</code>
+
+<Service service="stall" scale={3} caption="Yatai del mercader (3×1)" />
+
+Un *yatai* con tejado de tablas, noren partido, chōchin rojo, mostrador con mercancía y ruedas de carro; el mercader asiente a los que pasan. **Compra y vende.**
+
+- **Vende** equipo **común** a tu nivel, hasta el techo de un común ({game.ILVL_CAP.base}).
+- **Compra** a un cuarto del valor y vende a **el doble**: ningún bucle de compra-venta hace dinero.
+- **Venta por rareza:** una rareza entera de la bolsa de una vez, solo **por debajo de épico** (épico y legendario van uno a uno, a propósito).
+- No acepta skins ni las ofrece.
+
+## El herrero <code>{zones.STATION.smith}</code>
+
+<Service service="smith" scale={3} caption="La forja (5×2)" />
+
+Un anciano de barba gris en su *hodo* de barro, con el fuelle *fuigo*, el techo con su *kemuridashi*, una shimenawa a lo largo del alero (forjar es un oficio sagrado), el estante de herramientas, los fardos de carbón y la pila de temple. Martillea con chispas y un clang.
+
+| Acción | Qué hace | Coste |
+|---|---|---|
+| **Reparar** | Devuelve la salud perdida | Medio valor por una pieza rota del todo, proporcional por debajo |
+| **Mejorar** | +1, hasta **+{game.MAX_PLUS}** | Crece fuerte y siempre cuesta más de lo que suma al valor de venta |
+| **Subir nivel** | +1 al nivel de objeto, **hasta el techo de su rareza** | ×{economy.LEVEL_COST} el valor del resultado, más lo que sus mejoras cuestan al nuevo nivel |
+| **Fusionar** | La pieza + una copia → la rareza siguiente | Medio valor del resultado; puede fallar |
+
+**El techo lo decide la rareza, no tu mundo:** común, raro y épico se quedan en {game.ILVL_CAP.base}; legendario, divino y mítico llegan a {game.MAX_ILVL}. La escalera es siempre la misma: **súbelo a su techo y fusiónalo**.
+
+## La curandera <code>{zones.STATION.healer}</code>
+
+<Service service="healer" scale={3} caption="El altar de la curandera (4×2)" />
+
+Un oráculo de santuario en *furisode* de ciruelo con sakura, corona dorada y *kagura suzu* de cinco cintas, ante su altar con el espejo sagrado; el incensario humea y la mesa de remedios tiene su *yagen*. Cada pocos segundos alza las campanas y las agita.
+
+Sube la **habilidad** (Q) y la **definitiva** (R), cada una en su pestaña.
+
+| | Habilidad | Definitiva |
+|---|---|---|
+| Niveles | 1–{economy.MAX_SKILL} | 1–{economy.MAX_ULT} |
+| Multiplicador | `1 + 0.12·(nivel − 1)` | `1 + 0.15·(nivel − 1)` |
+| Coste del nivel 2 | {economy.skillCost(1).toLocaleString('es')} mon | {economy.ultCost(1).toLocaleString('es')} mon |
+| Coste del último | {economy.skillCost(economy.MAX_SKILL - 1).toLocaleString('es')} mon | {economy.ultCost(economy.MAX_ULT - 1).toLocaleString('es')} mon |
+| Nivel de personaje | {economy.SKILL_MIN_LVL.slice(2).join(', ')} | {economy.ULT_MIN_LVL.slice(1).join(', ')} |
+
+**Desde el nivel {economy.SKILL_PERK.lvl} de la habilidad** (solo la habilidad, nunca la definitiva): el Kekkai enfría ×{economy.SKILL_PERK.cd} y cura ×{economy.SKILL_PERK.heal}, y el Shiko hace al rikishi **inmune a todo daño {economy.SKILL_PERK.immuneT} s**.
+
+## La costurera <code>{zones.STATION.seamstress}</code>
+
+<Service service="seamstress" scale={3} caption="El telar de Itohime (4×2)" />
+
+Desde el mundo {zones.SEAMSTRESS_WORLD}. Cose las [skins](/objetos/skins/). Itohime, con su moño *shimada*, peine rojo y *kanzashi* de oro, ante su **nuidai** con un fénix de oro a medio coser en seda guinda; a su lado el **monohoshi** con telas *shibori* secándose y el **itokake** de carretes con su *haribako*.
+
+## El almacén y la estela
+
+<div class="board">
+  <Service service="storage" scale={3} caption="Kura (2×1): el almacén" />
+  <Service service="stele" scale={3} caption="Sekihi: la estela de la memoria" />
+</div>
+
+El **kura** guarda {game.STORAGE_SIZE} objetos: tejado de kawara, yeso blanco, celosía *namako* y puerta de madera. Un clic mueve una pieza entre la bolsa y el almacén.
+
+La **estela** (una losa de granito con su inscripción brillando, shimenawa y una ofrenda) tiene **una pestaña por jefe de la zona de la aldea**, con el principal abierto por defecto: su fuerza en esta generación, sus poderes, sus resistencias aprendidas y en uso, su historial de lecciones, lo aprendido, su taunt, las barras de pesos, su objetivo, su agresividad y sus héroes.
+
+## El onmyōji y su portal
+
+<div class="board">
+  <Service service="onmyoji" scale={3} caption="Haruaki sobre su tatami, con el shikiban" />
+  <Service service="portal" scale={3} caption="Su portal: un torii de piedra con el Seiman" />
+</div>
+
+**Haruaki**, en la esquina inferior izquierda de cada aldea, con *kariginu* índigo, *hakama* blanco y *eboshi* negro. De vez en cuando alza un ofuda y sale volando un shikigami de papel. Su portal es un *ishi-dorii* con el **Seiman** dorado en su placa (la estrella de cinco puntas de Abe no Seimei), ofuda en los pilares y una shimenawa bajo el *nuki*; en su hueco gira un vórtice violeta.
+
+**E** a su lado abre sus viajes: todas las aldeas, ordenadas por el nivel de su zona. La actual dice «Estás aquí», una cerrada sale con candado.
+
+<table class="data">
+  <thead><tr><th>Aldea</th><th class="num">Cuota</th></tr></thead>
+  <tbody>
+    {Object.values(world.MAPS).filter((m) => m.safe).sort((a, b) => (a.lvl?.[0] ?? 1) - (b.lvl?.[0] ?? 1))
+      .map((m) => <tr><td>{mapName(m.id)} <small>(zona {m.lvl?.join('–')})</small></td><td class="num">{zones.teleportFee(m)} mon</td></tr>)}
+  </tbody>
+</table>
+
+La cuota es <code>{zones.TELEPORT.base} + {zones.TELEPORT.perLvl} × nivel mínimo de la zona</code> de destino. El servidor cobra **después** de comprobarlo todo, y un mensaje repetido no cobra dos veces.

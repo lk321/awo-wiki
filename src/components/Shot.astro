@@ -1,0 +1,15 @@
+---
+// A real screenshot of the game (public/shots, made by scripts/screenshots.ts). A missing file fails the build: no silent gaps.
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+interface Props { name: string; alt: string; caption?: string; width?: number }
+const { name, alt, caption, width } = Astro.props;
+// from the project root, not from this file: at build time the component is bundled somewhere else entirely
+if (!existsSync(join(process.cwd(), 'public', 'shots', `${name}.png`))) {
+  throw new Error(`Shot: falta public/shots/${name}.png (ejecuta «npm run shots» con el juego en marcha)`);
+}
+---
+<figure class="shot ema">
+  <img src={`/shots/${name}.png`} alt={alt} loading="lazy" decoding="async" width={width} />
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>

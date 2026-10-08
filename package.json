@@ -1,0 +1,38 @@
+{
+  "name": "awo-ki",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "prebuild": "node scripts/node-check.mjs",
+    "build": "npm run check-refs && astro build",
+    "precheck": "node scripts/node-check.mjs",
+    "check": "npm run test && npm run check-refs && astro check",
+    "precheck-refs": "node scripts/node-check.mjs",
+    "check-refs": "node --experimental-strip-types scripts/check-refs.ts",
+    "predev": "node scripts/node-check.mjs",
+    "dev": "astro dev --port 4321",
+    "prefavicon": "node scripts/node-check.mjs",
+    "favicon": "node --experimental-strip-types scripts/favicon.ts",
+    "prepreview": "node scripts/node-check.mjs",
+    "preshots": "node scripts/node-check.mjs",
+    "shots": "node --experimental-strip-types scripts/screenshots.ts",
+    "pretest": "node scripts/node-check.mjs",
+    "test": "node --test --experimental-strip-types scripts/*.test.ts",
+    "preview": "astro preview --port 4322"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "^0.42.5",
+    "astro": "^7.3.7",
+    "sharp": "^0.34.5"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.6",
+    "@napi-rs/canvas": "^1.0.10",
+    "mongodb": "^7.0.0",
+    "playwright": "^1.64.0",
+    "typescript": "^5.9.3"
+  }
+}

@@ -1,0 +1,43 @@
+---
+title: Títulos
+description: El catálogo entero, cómo se ganan y por qué un título raro siempre vale más que uno común de su mundo.
+sidebar: { order: 2, label: 'Títulos' }
+---
+import Patron from '../../../components/Patron.astro';
+import TitleTable from '../../../components/tables/TitleTable.astro';
+import { game, titles } from '../../../lib/shared.ts';
+
+<Patron kami="fujin" section="progresion" />
+
+Se ganan por **hazañas** y se lleva **uno a la vez**, encima del nombre, cada uno con una ventaja pequeña. Los temporales caducan y se renuevan con cada victoria nueva.
+
+## Equilibrados por construcción
+
+Un título solo nombra **qué** ventajas da; **cuánto** sale de su rareza y su mundo. Cada ventaja vale `PERK_PCT[rareza] %`, más un **{Math.round(titles.PERK_WORLD * 100)} %** de eso por cada mundo pasado el primero, redondeado a enteros; y cada rareza lleva como mucho un número fijo de ventajas:
+
+<table class="data">
+  <thead><tr><th>Rareza</th><th>Valor de cada ventaja</th><th class="num">Ventajas como mucho</th></tr></thead>
+  <tbody>
+    {titles.PERK_PCT.map((p, i) => (
+      <tr>
+        <td class={`r-${game.RARITY[i]}`}>{['Común', 'Raro', 'Épico', 'Legendario'][i]}</td>
+        <td>{p} % (mundo 1) → {Math.round(titles.perkValue(i, 3) * 100)} % (mundo 3)</td>
+        <td class="num">{titles.MAX_PERKS[i]}</td>
+      </tr>
+    ))}
+  </tbody>
+</table>
+
+Así, **dentro de un mundo, un título más raro gana al común en cada ventaja y en el total**, y un legendario del mundo 4 toparía en el {Math.round(titles.PERK_CEIL * 100)} % por ventaja. Las ventajas siguen a la hazaña: cazar da botín, comerciar y batirse dan mon, crecer da XP.
+
+## Mundo 1 · Valle de Kiri
+
+<TitleTable world={1} />
+
+## Mundo 2 · Montañas Orientales
+
+<TitleTable world={2} />
+
+## Mundo 3 · Cumbres Ancestrales
+
+<TitleTable world={3} />

@@ -1,0 +1,22 @@
+---
+title: Artboard
+description: Todo el arte del juego, recorrido automáticamente desde sus registros y pintado en vivo con su propio código.
+sidebar: { order: 2, label: 'Artboard' }
+---
+import Patron from '../../../components/Patron.astro';
+import Board from '../../../components/Board.astro';
+import { sections } from '../../../lib/artboard.ts';
+
+export const all = sections();
+
+<Patron kami="torii" section="arte" />
+
+Todo el arte de Amazing World Online es **pixel art procedural**: no hay un solo PNG. Cada pieza de esta página se pinta aquí y ahora con **el mismo código que la dibuja en el juego** (`client/src/art/`), recorriendo sus registros. Nada está listado a mano: un sprite nuevo en el juego aparece aquí en la siguiente compilación.
+
+Hay **{all.reduce((n, s) => n + s.keys.length, 0)} piezas** en {all.length} secciones. Los sprites con varios frames tienen su botón de animar, y cada hoja lleva su sombra bajo los pies, como la coloca el juego.
+
+<nav class="toc-board">
+  {all.map((s) => <a href={`#${s.id}`}>{s.title} <small>{s.keys.length}</small></a>)}
+</nav>
+
+{all.map((s) => <Board section={s} />)}

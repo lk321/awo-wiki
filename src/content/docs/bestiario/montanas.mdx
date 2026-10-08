@@ -1,0 +1,28 @@
+---
+title: Bestiario · Montañas Orientales
+description: Los siete mobs de la montaña, sus ocho élites, los de las profundidades y sus cuatro jefes.
+sidebar: { order: 2, label: 'Montañas Orientales' }
+---
+import Patron from '../../../components/Patron.astro';
+import Beast from '../../../components/Beast.astro';
+import { mobsOf } from '../../../lib/maps.ts';
+
+<Patron kami="susanoo" section="bestiario" />
+
+Siete funciones de combate distintas en el campo abierto, cuatro exclusivas de la mazmorra y ocho élites. Datos: `shared/mobs/mountains.ts`.
+
+## Campo abierto
+
+{mobsOf('yama').mobs.map((m) => <Beast kind={m.kind} />)}
+
+## Élites
+
+{mobsOf('yama').elites.map((m) => <Beast kind={m.kind} />)}
+
+## Profundidades de la Montaña
+
+{[...mobsOf('fukami').mobs, ...mobsOf('fukami').elites].map((m) => <Beast kind={m.kind} />)}
+
+## Jefes de la montaña
+
+{['nio', 'inoshishi', 'ronin', 'daidara', 'genbu'].map((k) => <Beast kind={k} />)}

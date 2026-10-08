@@ -1,0 +1,28 @@
+---
+// One Artboard section: its title, why it exists, how many pieces it holds, and every piece side by side.
+import Sprite from './Sprite.astro';
+import Service from './Service.astro';
+import Frame from './Frame.astro';
+import MapView from './MapView.astro';
+import type { Section } from '../lib/artboard.ts';
+import { mapName, itemName } from '../lib/names.ts';
+import { serviceOf } from '../lib/services.ts';
+interface Props { section: Section }
+const { section: s } = Astro.props;
+const SERVICE_NAME: Record<string, string> = { stall: 'Puesto (yatai)', storage: 'Almacén (kura)', stele: 'Estela (sekihi)', onmyoji: 'Onmyōji y su shikiban', portal: 'Portal (ishi-dorii)', smith: 'Herrero y su forja', healer: 'Curandera y su altar', seamstress: 'Costurera y su telar' };
+---
+<section class="board-section" id={s.id}>
+  <h2>{s.title} <small class="count">{s.keys.length} piezas</small></h2>
+  <p class="why">{s.why}</p>
+  {s.kind === 'map' ? (
+    s.keys.map((k) => <MapView map={k} caption={mapName(k)} />)
+  ) : (
+    <div class:list={['board', { 'board-sm': (s.scale ?? 3) <= 2 }]}>
+      {s.keys.map((k) => (
+        s.kind === 'service' ? <Service service={k} scale={2} caption={SERVICE_NAME[k] ?? serviceOf(k)!.id} />
+        : s.kind === 'item' ? <Frame base={k} rarity={3} caption={itemName(k)} />
+        : <Sprite key={k} scale={s.scale ?? 3} />
+      ))}
+    </div>
+  )}
+</section>

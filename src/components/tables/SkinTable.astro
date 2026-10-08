@@ -1,0 +1,54 @@
+---
+// The seamstress's skins: each one's sheet, its class, its set's bonus pool and ranges, and the three pieces the loom takes.
+// Everything from shared/skins.ts and shared/economy.ts › SKIN_RECIPE, so a set added to the game appears here on its own.
+import Sprite from '../Sprite.astro';
+import { economy, game, skins, zones } from '../../lib/shared.ts';
+import { className, itemName, rarityName, statName } from '../../lib/names.ts';
+
+const SET_NAME: Record<number, string> = { 1: 'negro y plata', 2: 'guinda y oro', 3: 'los dioses' };
+const bases = Object.entries(game.BASES).filter(([, b]) => b.slot === 'skin')
+  .sort((a, b) => (a[1].set! - b[1].set!) || a[0].localeCompare(b[0]));
+const range = (set: skins.SkinSet) => {
+  const s = skins.SKIN_SET[set];
+  return s.pool.map((a) => { const [lo, hi] = s.range[a]!; return `${statName(a)} ${hi < 1 ? `${(lo * 100).toFixed(1)}–${(hi * 100).toFixed(1)} %` : `${lo}–${hi}`}`; }).join(' · ');
+};
+const recipe = (set: skins.SkinSet, w: string) => {
+  const r = economy.SKIN_RECIPE[set];
+  return `arma ${className(w)} · ${itemName(r.armor)} · amuleto, ${rarityName(r.rarity).toLowerCase()}s de nivel ${r.exact ? `exactamente ${r.ilvl}` : `${r.ilvl}+`}`;
+};
+---
+<table class="data">
+  <thead><tr><th>Skin</th><th>Nombre</th><th>Clase</th><th>Juego</th><th>Su bonus</th><th>Piezas del telar</th></tr></thead>
+  <tbody>
+    {bases.map(([key, b]) => (
+      <tr>
+        <td><Sprite key={`skin:${key}`} scale={2} label={false} single={true} /></td>
+        <td><b class={`r-${game.RARITY[skins.SKIN_SET[b.set!].rarity]}`}>{itemName(key)}</b><br /><code>{key}</code>{b.wearLvl ? <><br /><small>nivel {b.wearLvl}</small></> : null}</td>
+        <td>{className(b.skin!)}</td>
+        <td>{b.set} · {SET_NAME[b.set!]}</td>
+        <td><small>{range(b.set!)}</small></td>
+        <td><small>{recipe(b.set!, b.skin!)}</small></td>
+      </tr>
+    ))}
+  </tbody>
+</table>
+
+<table class="data">
+  <thead><tr><th>Juego</th><th>Rareza</th><th class="num">Líneas</th><th>Pool</th><th class="num">Se cose desde el mundo</th><th>Se comercia</th></tr></thead>
+  <tbody>
+    {skins.SKIN_SETS.map((set) => {
+      const s = skins.SKIN_SET[set];
+      return (
+        <tr>
+          <td><b>{set} · {SET_NAME[set]}</b></td>
+          <td class={`r-${game.RARITY[s.rarity]}`}>{rarityName(s.rarity)}</td>
+          <td class="num">2–{skins.maxLines(set)} <small>({s.lines.map((p) => `${Math.round(p * 100)} %`).join(' / ')})</small></td>
+          <td><small>{s.pool.map((a) => statName(a)).join(', ')}</small></td>
+          <td class="num">{zones.SKIN_SET_WORLD[set]}</td>
+          <td>{s.bound ? 'no: se liga a quien la cosió' : 'sí (mercado y comercio; nunca el puesto)'}</td>
+        </tr>
+      );
+    })}
+  </tbody>
+</table>
+<p class="hint">Cada skin tira sus líneas <b>una sola vez, al coserla</b>, de tipos distintos de su pool, y no cambian nunca salvo con un fragmento Kintsugi. Son valores <b>absolutos</b>: no escalan con el nivel de objeto ni con las mejoras. Solo cuentan con un arma de su clase.</p>

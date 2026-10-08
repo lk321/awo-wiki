@@ -1,0 +1,32 @@
+---
+title: Objetivos de mapa
+description: "La lista del HUD: qué completa cada objetivo, qué paga y por qué paga tan poco."
+sidebar: { order: 3, label: 'Objetivos' }
+---
+import Patron from '../../../components/Patron.astro';
+import Sprite from '../../../components/Sprite.astro';
+import { goals, world } from '../../../lib/shared.ts';
+import { goalText, mapName } from '../../../lib/names.ts';
+
+<Patron kami="fujin" section="progresion" />
+
+Cada mapa tiene su lista de objetivos, **una vez por cuenta**. El HUD muestra los pendientes del mapa en el que estás (**O** los oculta o los enseña) y el servidor los completa y los paga.
+
+Un objetivo se cumple con un **evento**: entrar en un mapa, matar a alguien, usar un servicio, romper los dos sellos de una arena, llegar al punto de un jefe de multitud o alcanzar un nivel. Un objetivo de jefe también se da por hecho si **ya lo habías matado antes** (su contador de hazaña lo recuerda).
+
+**Pagan poco a propósito:** todos los de un mapa juntos suman menos de medio nivel y un puñado de drops a ese nivel. Son una guía, no una ruta de farmeo.
+
+{[...new Set(goals.GOALS.map((g) => g.map))].map((map) => (
+  <section>
+    <h2>{mapName(map)}</h2>
+    <table class="data">
+      <thead><tr><th>Objetivo</th><th>Lo completa</th><th class="num">XP</th><th class="num">Mon</th></tr></thead>
+      <tbody>
+        {goals.GOALS.filter((g) => g.map === map).map((g) => {
+          const r = goals.goalReward(g);
+          return <tr><td>{g.icon && <Sprite key={`icon:${g.icon}`} scale={1} label={false} play={false} />} {goalText(g.key)}</td><td><code>{g.on}</code>{g.need && <><br /><small>solo tras {g.need}</small></>}</td><td class="num">{r.xp.toLocaleString('es')}</td><td class="num">{r.mon.toLocaleString('es')}</td></tr>;
+        })}
+      </tbody>
+    </table>
+  </section>
+))}

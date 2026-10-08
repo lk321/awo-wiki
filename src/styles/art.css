@@ -1,0 +1,61 @@
+/* Live art: sprite frames, the map viewer, the artboard grid and the item cells (the game's own .cell geometry, rarity.css on top). */
+.sprite { display: inline-flex; flex-direction: column; align-items: flex-start; gap: .35rem; margin: .4rem .6rem .6rem 0; padding: .5rem; vertical-align: top; max-width: 100%; }
+.sprite .art { line-height: 0; max-width: 100%; overflow-x: auto; min-height: calc(26px * var(--k, 3)); display: flex; align-items: flex-end; }
+.sprite .art canvas { image-rendering: pixelated; image-rendering: crisp-edges; flex: none; }
+.sprite .tag { display: flex; flex-direction: column; font-size: .75rem; line-height: 1.2; color: var(--sl-color-gray-2); }
+.sprite .tag b { color: var(--sl-color-white); font-weight: 400; }
+.sprite .play { font-family: var(--font-px); font-size: .75rem; padding: 1px 6px; background: var(--plate); color: var(--sl-color-text-accent); border: 2px solid var(--sl-color-hairline); cursor: pointer; }
+.sprite .play:hover { border-color: var(--red); }
+.sprite.broken .art::before { content: '✕ textura desconocida'; color: var(--red); font-size: .8rem; }
+.sprite.ema::before { display: none; }
+.sprite.service .art { min-height: 0; }
+.board { display: flex; flex-wrap: wrap; gap: .25rem; align-items: flex-start; margin: .75rem 0 1.5rem; }
+.board .sprite { margin: 0; }
+.board-sm .sprite .art { min-height: 0; }
+/* the map viewer: a plaque with a header and a scrolling stage; legend over the ground */
+.map { display: block; margin: 1.25rem 0; }
+.map header { display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: center; padding: .5rem .75rem; border-bottom: 2px solid var(--sl-color-hairline); }
+.map header b { color: var(--sl-color-white); }
+.map header span { color: var(--sl-color-gray-2); font-size: .8rem; }
+.map header nav { margin-left: auto; display: flex; gap: .25rem; }
+.map header button { font-family: var(--font-px); font-size: .8rem; padding: 1px 8px; border: 2px solid var(--sl-color-hairline); background: var(--plate); color: var(--sl-color-text); cursor: pointer; }
+.map header button.on { border-color: var(--red); color: var(--sl-color-text-accent); }
+.map .scroll { overflow: auto; max-height: 70vh; background: var(--lac-d); }
+.map .stage { position: relative; }
+.map .stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+.map .wait { color: var(--paper-d); font-family: var(--font-px); padding: 2rem; margin: 0; }
+.backdrop { display: block; background-size: cover; background-position: center bottom; image-rendering: pixelated; position: relative; min-height: 12rem; }
+.backdrop .petals { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center bottom; image-rendering: pixelated; pointer-events: none; }
+/* item cells: the game's geometry (client/src/style.css › .cell), the rarity frames from client/src/rarity.css */
+.itemcell { display: inline-flex; flex-direction: column; align-items: center; gap: .6rem; margin: .4rem .9rem 1rem .4rem; vertical-align: top; width: 64px; }
+.itemcell .cell { width: 54px; height: 54px; background: #000; border: 2px solid #333; display: grid; place-items: center; position: relative; }
+.itemcell .ico { width: 36px; image-rendering: pixelated; }
+.itemcell .cell small { position: absolute; bottom: 0; right: 2px; font-size: 10px; color: var(--paper); }
+.itemcell .cell b { position: absolute; top: 3px; left: 2px; font-size: 10px; font-weight: normal; color: var(--gold); }
+.itemcell .cell i.pips { position: absolute; left: 3px; bottom: 3px; width: calc(var(--n) * 12px); height: 10px; background: var(--pip) 0 0 / 12px 10px repeat-x; image-rendering: pixelated; }
+.itemcell em { font-style: normal; font-size: .7rem; text-align: center; line-height: 1.2; font-family: var(--font-px); }
+/* data tables with a sprite in a column */
+.data .sprite { padding: 0; margin: 0; background: none; border: 0; box-shadow: none; }
+.data .sprite .art { min-height: 0; }
+.data td { vertical-align: middle; }
+.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.r-common { color: #d8d8d8; } .r-rare { color: #4aa3ff; } .r-epic { color: #c06cff; } .r-legendary { color: #ffa31a; } .r-divine { color: #9ee8ff; } .r-mythic { color: #ff3d6e; }
+@media (max-width: 30rem) { .sprite { margin-right: .3rem; } .map .scroll { max-height: 60vh; } }
+
+/* the bestiary's entries: the sprite beside its numbers, then its traits and its patterns */
+.beast { margin: 1.5rem 0 2.5rem; }
+.beast h3 { margin-bottom: .5rem; }
+.beast .count, .board-section .count { font-family: var(--font-px); font-size: .75rem; color: var(--sl-color-gray-3); font-weight: 400; }
+.beast-body { display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-start; }
+.beast-body > .sprite { flex: none; }
+.beast-body > table { flex: 1 1 18rem; margin: 0; }
+.beast-body th { background: color-mix(in srgb, var(--wood-plate) 50%, transparent); font-weight: 400; }
+.beast .traits { font-size: .9rem; color: var(--sl-color-gray-2); margin: .5rem 0 0; }
+.board-section { margin: 2rem 0 3rem; }
+.board-section .why { color: var(--sl-color-gray-2); font-size: .9rem; margin: .25rem 0 .75rem; }
+
+/* the Artboard's own index: one tablet per section */
+.toc-board { display: flex; flex-wrap: wrap; gap: .4rem; margin: 1rem 0 2rem; }
+.toc-board a { font-family: var(--font-px); font-size: .8rem; padding: .25rem .6rem; background: var(--plate); border: 2px solid var(--sl-color-hairline) !important; color: var(--sl-color-text) !important; text-decoration: none; }
+.toc-board a:hover { border-color: var(--red) !important; color: var(--sl-color-text-accent) !important; background: var(--plate); }
+.toc-board a small { color: var(--gold); margin-left: .3rem; }

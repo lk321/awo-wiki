@@ -1,0 +1,23 @@
+---
+// Every gear base of BASES with its icon, slot, stats at legendary ilvl 1 and the source level it needs (minLvl).
+import Frame from '../Frame.astro';
+import { game } from '../../lib/shared.ts';
+import { className, itemName, statName } from '../../lib/names.ts';
+const SLOT: Record<string, string> = { weapon: 'Arma', armor: 'Armadura', amulet: 'Amuleto', material: 'Material', skin: 'Skin' };
+const bases = Object.entries(game.BASES).filter(([, b]) => b.slot !== 'skin');
+const stats = (b: (typeof game.BASES)[string]) => [b.atk && `${statName('atk')} ${b.atk}`, b.def && `${statName('def')} ${b.def}`, b.hp && `${statName('hp')} ${b.hp}`, b.crit && `${statName('crit')} +${(b.crit * 100).toFixed(0)} %`].filter(Boolean).join(' · ') || '—';
+---
+<table class="data">
+  <thead><tr><th>Icono</th><th>Base</th><th>Slot</th><th>Stats (legendario, nivel 1)</th><th class="num">Nv. mín. de la fuente</th></tr></thead>
+  <tbody>
+    {bases.map(([key, b]) => (
+      <tr>
+        <td><Frame base={key} rarity={3} caption=" " /></td>
+        <td><b>{itemName(key)}</b><br /><code>{key}</code></td>
+        <td>{SLOT[b.slot]}{b.weapon && ` · ${className(b.weapon)}`}</td>
+        <td>{stats(b)}</td>
+        <td class="num">{b.minLvl ?? 1}</td>
+      </tr>
+    ))}
+  </tbody>
+</table>

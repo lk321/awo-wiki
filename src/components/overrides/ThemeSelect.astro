@@ -1,0 +1,19 @@
+---
+// Day and night as a pixel sun and moon (Starlight keeps the choice in localStorage › starlight-theme, its ThemeProvider reads it on load).
+import { ic } from '../../../../awo/client/src/art/iconsWorld.ts';
+import { gridSvg } from '../../lib/svg.ts';
+const SUN = ic(['....k....k....k.', '.k..kYk.kYk..k..', '..k.kyk.kyk.k...', '...kkYYYYYkk....', 'k..kYyWWwyyk..k.', '.kkYyWWwwwyyYkk.', '..kYyWwwwwyyyk..', 'kYyyyWwwwwyyyyYk', 'kyyyyywwwpyyyyyk', '..kyyywwpppyyok.', '.kkyyyyppppyyokk', 'k..kyyyyyyyyok.k', '...kkyyyyyokk...', '..k.kyk.kyk.k...', '.k..kok.kok..k..', '....k....k....k.']);
+const MOON = ic(['......kkkkk.....', '....kkWWWwwkk...', '...kWWWwwwwpk...', '..kWWwwwwpkk....', '..kWwwwwpk......', '.kWwwwwpk.......', '.kWwwwpk....kYk.', '.kWwwwpk.....k..', '.kWwwwpk........', '.kwwwwpk........', '..kwwwppk.......', '..kwwwpppkk.....', '...kpwpppppkk...', '....kkppppppk...', '......kkkkkk....', '.........kYk....']);
+---
+<button type="button" class="theme-toggle" aria-label="Cambiar entre día y noche" title="Día / noche">
+  <span class="sun" set:html={gridSvg(SUN, 2)} /><span class="moon" set:html={gridSvg(MOON, 2)} />
+</button>
+<script>
+  const KEY = 'starlight-theme';
+  for (const b of document.querySelectorAll<HTMLButtonElement>('.theme-toggle')) b.onclick = () => {
+    const dark = (document.documentElement.dataset.theme ?? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')) === 'dark';
+    const next = dark ? 'light' : 'dark';
+    document.documentElement.dataset.theme = next;
+    try { localStorage.setItem(KEY, next); } catch {}
+  };
+</script>

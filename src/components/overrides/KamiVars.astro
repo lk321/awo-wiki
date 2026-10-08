@@ -1,0 +1,7 @@
+---
+// Every kami emblem as a CSS variable (--kami-<id>), so the sidebar's summaries wear theirs (styles/shrine.css).
+import { KAMI } from '../../art/kami.ts';
+import { gridUrl } from '../../lib/svg.ts';
+const vars = Object.entries(KAMI).map(([id, k]) => `--kami-${id}:${gridUrl(k.icon)}`).join(';');
+---
+<style is:global set:html={`:root{${vars}}`}></style>

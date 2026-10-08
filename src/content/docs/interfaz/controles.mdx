@@ -1,0 +1,67 @@
+---
+title: Controles
+description: Cada tecla y cada botón táctil, leídos del catálogo de textos del propio juego.
+sidebar: { order: 2, label: 'Controles' }
+---
+import Patron from '../../../components/Patron.astro';
+import Sprite from '../../../components/Sprite.astro';
+import { es } from '../../../lib/shared.ts';
+import { settingsKeys } from '../../../lib/names.ts';
+
+export const S = es.settings;
+export const KEYS = settingsKeys();
+export const ROWS = [
+  ['WASD / ↑←↓→', 'move'], [es.keys.click, 'attack'], ['Q', 'skill'], ['R', 'ult'], [S.space, 'dash'], ['E', 'use'],
+  ['I', 'inv'], [S.rclick, 'drop'], ['P', 'profile'], ['M', 'zone'], ['B', 'market'], ['N', 'sound'], ['O', 'goals'],
+  ['Enter', 'chat'], ['/', 'cmd'], ['Esc', 'esc'],
+];
+
+<Patron kami="daikoku" section="interfaz" />
+
+Esta lista sale del mismo sitio que la que ves dentro del juego (**Esc** sin ningún panel abierto, o el engranaje): el catálogo de textos de `shared/locales/`.
+
+<table class="data">
+  <thead><tr><th>Tecla</th><th>Qué hace</th></tr></thead>
+  <tbody>{ROWS.map(([k, id]) => <tr><td><b>{k}</b></td><td>{(KEYS[id] ?? '').replace('{{lvl}}', '30')}</td></tr>)}</tbody>
+</table>
+
+:::note[El teclado es nativo, no de Phaser]
+Los listeners viven a nivel de módulo en el cliente, fuera del motor, porque la captura de teclas de Phaser se comería WASD y Espacio mientras escribes en el chat.
+:::
+
+## En el móvil
+
+Los controles táctiles aparecen en cuanto el último puntero es un dedo:
+
+- **Joystick flotante** donde apoyes el pulgar: ocho sectores que se traducen a WASD, con zona muerta.
+- **La barra de habilidades funciona como botones**; arrastrar desde uno **apunta**.
+- **Botón E** para hablar con los servicios, iluminado cuando tienes algo al alcance.
+- **Menú** con la bolsa, el perfil, el mapa, el chat, el sonido y la pantalla completa.
+- **Apuntar sin ratón:** lo que arrastres; si no, el enemigo más cercano (con retícula); si no, hacia donde miras.
+- Sin Mayús, **mantener 500 ms** se comporta como el clic derecho a secas.
+
+<div class="board board-sm">
+  <Sprite key="icon:settings" scale={3} caption="Configuración" />
+  <Sprite key="icon:market" scale={3} caption="Mercado" />
+  <Sprite key="icon:storage" scale={3} caption="Almacén" />
+  <Sprite key="icon:stele" scale={3} caption="Estela" />
+  <Sprite key="icon:travel" scale={3} caption="Viajar" />
+  <Sprite key="icon:boss" scale={3} caption="Jefe" />
+</div>
+
+## Configuración
+
+{S.title}: **{S.music}** y **{S.sfx}** por separado (el sonido es un sintetizador WebAudio, sin un solo archivo), **{S.lang}** en partida ({Object.values(S.langName).join(' / ')}) y la lista de controles de arriba.
+
+## Chat
+
+**Enter** escribe; **Tab** completa un comando o el nombre de un jugador. Los filtros de arriba ({Object.values(es.chatF).filter((v) => typeof v === 'string').slice(0, 5).join(', ')}) avisan de lo no leído y se guardan en el navegador.
+
+<table class="data">
+  <thead><tr><th>Comando</th><th>Qué hace</th></tr></thead>
+  <tbody>
+    {Object.entries(es.cmdHelp).filter(([k]) => !['title', 'matches'].includes(k)).map(([, v]) => (
+      <tr><td><code>{String(v).split(' · ')[0]}</code></td><td>{String(v).split(' · ').slice(1).join(' · ').replace('{{max}}', '5000')}</td></tr>
+    ))}
+  </tbody>
+</table>

@@ -1,0 +1,48 @@
+---
+title: Estado y desviaciones
+description: Qué está hecho, en qué se apartó la implementación del plan original y qué queda pendiente.
+sidebar: { order: 7, label: 'Estado' }
+---
+import Patron from '../../../components/Patron.astro';
+import { world, game, titles, goals } from '../../../lib/shared.ts';
+
+<Patron kami="onmyoji" section="tecnico" />
+
+Amazing World Online es una **demo vertical slice**. Lo que hay hoy, contado por el propio código:
+
+| | |
+|---|---|
+| Mapas | {Object.keys(world.MAPS).length} ({Object.values(world.MAPS).filter((m) => m.safe).length} aldeas, {Object.values(world.MAPS).filter((m) => m.party).length} mazmorras, {Object.values(world.MAPS).filter((m) => !m.lvl).length} arenas) |
+| Mundos | {new Set(Object.values(world.MAPS).map((m) => m.world)).size} de los {game.WORLDS} previstos |
+| Monstruos, élites y jefes de campo | {Object.keys(game.MOBS).length} |
+| Jefes principales | 3, con sus 20 generaciones y su aprendizaje |
+| Bases de objeto | {Object.keys(game.BASES).length} ({Object.keys(game.BASES).filter((b) => game.BASES[b].slot === 'skin').length} son skins) |
+| Rarezas | {game.RARITY.length} |
+| Títulos | {titles.TITLE_IDS.length} |
+| Objetivos de mapa | {goals.GOALS.length} |
+| Nivel máximo | {game.MAX_LEVEL} (hoy alcanzable: {game.LEVEL_CAPS[2]}) |
+
+## Dónde se apartó del plan original
+
+- **El rango del mundo 2** se pidió 5–15 y es **15–25**. Quien llega al mundo 2 ya es nivel 15 (lo exige la puerta del Oni en G20 y el tope del valle): con mobs de 5–15 no recibiría botín ni casi XP.
+- **Los jefes principales son uno por mundo**, no uno por zona: la progresión exige vencerlo «en su nivel máximo G20», y las generaciones son del jefe principal.
+- **El tope de nivel del mundo 3 es 50**, no 45: lo pidió el encargo, y con él la curva de XP se empina desde el 30 para que 30→50 sean semanas de juego.
+- **Los objetos dejan de crecer en el mundo 3**: siguen en nivel 20 y +9, y el salto de ese mundo es la rareza mítica.
+- **El techo de la herrería lo decide la rareza, no tu mundo**: antes un épico del mundo 2 había que arrastrarlo a 20 para fusionarlo y un legendario del valle quedaba muerto en 10.
+- **La generación del jefe principal es por jugador**, no del servidor: antes el que llegaba tarde se chocaba con un G20 que otros habían dejado ahí, y para arreglarlo una victoria en G20 devolvía el jefe a G9.
+- **Una victoria contra un jefe principal no vale más de {Math.round(0.35 * 100)} % del nivel en curso**: sin ese techo, dejarse llevar por veteranos era con diferencia la XP más rápida del juego.
+
+## Lo que no se hizo, y por qué
+
+- **Estados alterados en el jugador** (veneno, lentitud, empuje): el valle no los tiene y el encargo pedía no inventar mecánicas. El control del mundo 3 es **de zona** (ondas, anillos, círculos marcados), que no pelea con la predicción del cliente.
+- **Altura real:** el mapa es 2D. Las terrazas y los acantilados se dibujan con caras de roca hacia el sur, y un dragón «vuela» elevándose sobre su sombra.
+- **Objetos únicos de jefe:** el sistema de objetos no los tiene. La mazmorra paga con nivel, rareza y cantidad.
+- **Sistema de eventos** y jefes de evento.
+- **Diálogo con los NPCs:** hoy abren su panel.
+- **Consumibles** (pociones) y materiales de mejora como objeto propio: la mejora cuesta mon y la fusión consume copias.
+
+## Deuda conocida
+
+- Los atajos deliberados están marcados en el código con un comentario que dice **cuál es su límite y cómo escalarlo**; se listan con `grep -rn "ponytail:" shared server client/src`.
+- El **cliente no lo cubre ninguna prueba automática**: la escena se prueba en el navegador.
+- Para **500 o más jugadores por mapa** queda medir con más bots y, si escribir en los sockets se vuelve el cuello de botella, probar el transporte de uWebSockets o varias instancias por mapa.

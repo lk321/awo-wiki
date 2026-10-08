@@ -1,0 +1,42 @@
+---
+// A world's monsters from MOBS, with their live sprite and the numbers the server spawns them with (mobHp, mobDef, mobAtk at
+// the level of the map they stand in: zones.ts › lvlIn). Built at compile time; nothing is typed twice.
+import Sprite from '../Sprite.astro';
+import { game, world, zones } from '../../lib/shared.ts';
+import { sheetOf } from '../../lib/maps.ts';
+import { mobName, patternName } from '../../lib/names.ts';
+
+interface Props { kinds: string[]; map?: string; role?: boolean }
+const { kinds, map, role = false } = Astro.props;
+const def = map ? world.MAPS[map] : undefined;
+const rows = kinds.map((kind) => {
+  const m = game.MOBS[kind];
+  if (!m) throw new Error(`MobTable: mob desconocido «${kind}»`);
+  const lvl = def ? zones.lvlIn(def, kind) : m.lvl;
+  const traits = [
+    m.boss && 'jefe', m.elite && 'élite', m.ranged && 'a distancia', m.fly && 'vuela', m.lurk && 'al acecho',
+    m.pack && `manada ${m.pack} px`, m.heal && `cura ${Math.round(m.heal.pct * 100)} % cada ${m.heal.every} s`,
+    m.armor && `armadura +${m.armor}`, m.kite && `retrocede a ${m.kite} px`, m.wide === Math.PI && 'arco 360°',
+    m.skill && `habilidad: ${m.skill.pattern.kind} cada ${m.skill.every} s`,
+  ].filter(Boolean).join(' · ');
+  const moves = m.boss ? Object.entries(m.boss.patterns).map(([p, v]) => `${patternName(p)} (${v.kind})`).join(' · ') : '';
+  return { kind, m, lvl, hp: game.mobHp(m, lvl), def: game.mobDef(m, lvl), atk: Math.round(game.mobAtk(m, lvl)), traits, moves };
+});
+---
+<table class="data">
+  <thead><tr><th>Sprite</th><th>Monstruo</th><th class="num">Nv.</th><th class="num">Vida</th><th class="num">Ataque</th><th class="num">Def.</th><th class="num">XP</th><th>Rasgos{role && ' y ataques'}</th></tr></thead>
+  <tbody>
+    {rows.map((r) => (
+      <tr>
+        <td><Sprite key={sheetOf(r.kind)} scale={2} label={false} play={true} single={true} /></td>
+        <td><b>{mobName(r.kind)}</b><br /><code>{r.kind}</code></td>
+        <td class="num">{r.lvl}</td>
+        <td class="num">{r.hp.toLocaleString('es')}</td>
+        <td class="num">{r.atk}</td>
+        <td class="num">{r.def}</td>
+        <td class="num">{r.m.xp.toLocaleString('es')}</td>
+        <td>{r.traits}{r.moves && <><br /><small>{r.moves}</small></>}</td>
+      </tr>
+    ))}
+  </tbody>
+</table>

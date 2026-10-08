@@ -1,0 +1,10 @@
+---
+// A patron kami's emblem (src/art/kami.ts) as crisp SVG, built at compile time.
+import { KAMI } from '../art/kami.ts';
+import { gridSvg } from '../lib/svg.ts';
+interface Props { id: string; size?: number; title?: boolean }
+const { id, size = 3, title = false } = Astro.props;
+const k = KAMI[id];
+if (!k) throw new Error(`Kami: kami desconocido «${id}»`);
+---
+<span class="kami" title={k.name} set:html={gridSvg(k.icon, size)} />{title && <b class="kami-name">{k.name}</b>}

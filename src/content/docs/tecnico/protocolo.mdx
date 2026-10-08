@@ -1,0 +1,50 @@
+---
+title: Protocolo
+description: Los mensajes entre cliente y servidor, el handshake y dónde se valida cada cosa.
+sidebar: { order: 2, label: 'Protocolo' }
+---
+import Patron from '../../../components/Patron.astro';
+
+<Patron kami="onmyoji" section="tecnico" />
+
+## El handshake
+
+El SDK **descarta los mensajes que llegan antes de que el cliente registre sus handlers**. Por eso el cliente envía `hello` al terminar de cablear la sala y el servidor responde con los datos privados del jugador. Cualquier dato inicial nuevo usa ese mismo patrón.
+
+## Lo que manda el cliente
+
+Solo **inputs** e **intenciones**. Nunca resultados.
+
+| Mensaje | Qué pide |
+|---|---|
+| `in` | Un lote de inputs: `[seq, mx, my, dash]` |
+| `act` | Atacar, habilidad, definitiva |
+| `equip` · `unequip` · `drop` | Mover una pieza entre la bolsa, el equipo y el suelo |
+| `shop` | Una acción de un NPC de servicio: comprar, vender, reparar, mejorar, subir nivel, fusionar, habilidad, definitiva, coser |
+| `teleport` | Viajar a otra aldea desde el onmyōji |
+| `stele` · `zoneInfo` · `inspect` | Pedir información |
+| `reroll` · `rerollPick` | Reforjar con un fragmento y quedarse con una de las dos tiradas |
+| `market` | Vender, buscar, comprar, retirar |
+| `trade` · `duel` · `invite` · `kick` · `leave` | Peticiones y party |
+| `revive` | Mantener E sobre un compañero caído |
+| `chat` | Una línea de chat o un comando |
+
+## La frontera de confianza
+
+Los handlers de mensajes y las opciones de sala. Ahí se comprueba **todo**:
+
+- **`zone`** solo acepta un mapa del catálogo que **no** sea una arena, y al entrar se rechaza un mapa cuya puerta el jugador no ha abierto o, si es una mazmorra, si no está en una party de ese tamaño.
+- **`teleport`** solo viaja **desde una aldea, junto al onmyōji, a otra aldea abierta**, y cobra **después** de comprobarlo todo y de mirar si ya estaba saliendo: un mensaje repetido no cobra dos veces.
+- **`dungeon`** (la arena de un jefe principal) exige una clave secreta del servidor que solo pasa la puerta, y un mapa que sea una arena.
+- **`shop`** solo sirve la acción **en su propio NPC**, y a menos de 40 px.
+- **Los inputs** se clampean a −1/0/1, como máximo 12 por lote y 6 pasos por tick.
+
+## Lo que manda el servidor
+
+El **estado sincronizado** (jugadores, mobs, proyectiles, sellos, el jefe principal) filtrado por la vista de cada cliente, más mensajes puntuales: `me` con tus datos privados, `zone` y `seat` al viajar, `fx` y `hit` **solo a quien los ve**, `summary` al vencer a un jefe principal, `feat` para una hazaña legendaria, `notice` para los avisos y `invite`, `trade`, `duel` para las peticiones.
+
+**Los textos van como claves, nunca como texto.** El servidor envía <code>{'{ key, p }'}</code> y el cliente los traduce al idioma del jugador: así los dos idiomas salen del mismo mensaje y nada visible vive en el código del servidor.
+
+## Las reinicializaciones de escena
+
+El cliente **reutiliza la instancia de Phaser** entre zonas. Todo el estado de la escena se resetea al entrar y los subsistemas con objetos de Phaser se crean de nuevo. Un campo con estado nuevo tiene que hacer lo mismo.

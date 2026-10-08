@@ -1,0 +1,51 @@
+---
+title: El cliente
+description: Predicción y reconciliación, el arte procedural, el juice, la interfaz DOM y el sonido sin un solo archivo.
+sidebar: { order: 3, label: 'El cliente' }
+---
+import Patron from '../../../components/Patron.astro';
+import Sprite from '../../../components/Sprite.astro';
+import { world } from '../../../lib/shared.ts';
+
+<Patron kami="onmyoji" section="tecnico" />
+
+## Predicción y reconciliación
+
+El cliente **predice** su propio movimiento con `step()`, la misma función que corre el servidor, con el mismo paso de 1/60 s. Cada lote de inputs lleva un número de secuencia; cuando el servidor confirma uno, el cliente descarta los anteriores y **reproduce** los que quedan desde la posición confirmada.
+
+Los campos que se reproducen (`x`, `y` y los cuatro del dash) son de **64 bits** en el estado sincronizado: con 32 el redondeo hacía que la reproducción divergiera del servidor. Los demás jugadores y los mobs se **interpolan** entre instantáneas.
+
+## El arte, todo procedural
+
+No hay un solo PNG. Cada sprite, prop, icono y tile se pinta con unas primitivas de pixel art que redondean a píxel entero (rectángulo, elipse, elipse iluminada, línea, triángulo) y un contorno de 1 px que recorre la imagen. Esos canvases se registran como texturas de Phaser al arrancar la escena, y como *data URLs* para la interfaz DOM.
+
+<div class="board board-sm">
+  <Sprite key="tex:glow" scale={1} caption="El halo" />
+  <Sprite key="tex:slash" scale={1} caption="El tajo" />
+  <Sprite key="tex:smoke" scale={3} caption="El humo" />
+  <Sprite key="tex:petal" scale={6} caption="Un pétalo" />
+</div>
+
+El **suelo se pinta por píxel** desde las filas ASCII del mapa: hierba, caminos, agua con su profundidad y sus orillas redondeadas, puentes orientados, arrozales, losas, muros, roca de montaña, acantilados, lava, escaleras, cuevas y nieve. Todo el mapa cabe en **un canvas**, que va siempre debajo de todo.
+
+## La profundidad
+
+Lo que tiene altura **no va en el canvas del mapa**: tiene su textura y se coloca con la **y de sus pies** como profundidad. Las entidades hacen lo mismo, así que el orden sale solo y puedes pasar por detrás de la forja o por debajo del torii. En el mapa solo queda su sombra.
+
+## El juice
+
+Golpes con *hit-stop* y sacudida de cámara, números de daño que suben, telegraphs que dibujan la zona de peligro **con los mismos números con los que el servidor golpea**, haces de luz por rareza en el botín (que parpadean en rojo cuando va a caducar), auras de skin que respiran, luces y partículas por zona, y las cuatro definitivas con su propia puesta en escena: la luna creciente, la lluvia de flechas con sus avisos, el doble sello y el pisotón con grietas.
+
+## La interfaz es DOM
+
+Paneles HTML por encima del canvas, no objetos de Phaser: el HUD, la bolsa, el perfil, la tienda, el telar, el mercado, el comercio, la estela, la información de zona, los viajes, la configuración, el chat con sus filtros y el resumen de victoria. El HUD se alimenta cada frame; el resto se entera de los cambios por un pequeño store.
+
+Hasta la **lista desplegable** es propia, porque la nativa no se puede estilar (el `<select>` sigue siendo la fuente de verdad), y el diálogo de sí/no es del juego, nunca el del navegador.
+
+## El sonido
+
+Un **sintetizador WebAudio**: efectos y música sin un solo archivo, cada uno con su interruptor, y con caída por distancia para lo que pasa en el mundo.
+
+## Rendimiento
+
+Los mobs que nadie ve (a más de 320 px de cualquier jugador) **no deambulan**: en un mapa grande no se mueven ni generan parches de estado. Los textos del mundo van a una profundidad muy alta para que un prop no tape un nombre. Y con `prefers-reduced-motion` los pétalos no caen y la pieza maestra no late.
